@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configurazione Qwibo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: "DM Sans", system-ui, sans-serif;
+      background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0; display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .card {
+      width: 100%; max-width: 520px; background: #1e293b; border-radius: 16px;
+      padding: 32px; box-shadow: 0 24px 48px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; color: #f8fafc; }
+    .lead { margin: 0 0 24px; color: #94a3b8; line-height: 1.5; font-size: .95rem; }
+    .step { margin-bottom: 20px; }
+    .step-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .step-title { font-weight: 600; font-size: .9rem; }
+    .step-pct { font-size: .85rem; color: #64748b; }
+    .bar {
+      height: 10px; background: #334155; border-radius: 999px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #6366f1);
+      border-radius: 999px; transition: width .3s ease;
+    }
+    .hint { font-size: .8rem; color: #64748b; margin-top: 6px; min-height: 1.2em; }
+    .skip { color: #94a3b8; font-size: .85rem; font-style: italic; }
+    .error {
+      display: none; margin-top: 16px; padding: 12px; background: #450a0a; color: #fecaca;
+      border-radius: 8px; font-size: .9rem;
+    }
+    .done-msg { display: none; text-align: center; padding: 16px 0; color: #86efac; font-weight: 600; }
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #475569;
+      border-top-color: #38bdf8; border-radius: 50%; animation: spin .8s linear infinite;
+      vertical-align: middle; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="panel-active">
+      <h1><span class="spinner" id="spin"></span>Configurazione iniziale</h1>
+      <p class="lead">
+        Stiamo preparando Qwibo sul tuo PC. Scarichiamo i modelli necessari
+        (~4–5 GB). Serve connessione internet stabile — una sola volta.
+      </p>
+
+      <div class="step" id="step-asr">
+        <div class="step-head">
+          <span class="step-title">Modello vocale (trascrizione)</span>
+          <span class="step-pct" id="pct-asr">In attesa…</span>
+        </div>
+        <div class="bar"><div class="bar-fill" id="fill-asr"></div></div>
+        <p class="hint" id="hint-asr"></p>
+      </div>
+
+      <div class="step" id="step-qwen">
+        <div class="step-head">
+          <span class="step-title">Modello riassunto locale (opzionale)</span>
+          <span class="step-pct" id="pct-qwen">In attesa…</span>
+        </div>
+        <div class="bar"><div class="bar-fill" id="fill-qwen"></div></div>
+        <p class="hint" id="hint-qwen"></p>
+      </div>
+
+      <div class="error" id="err"></div>
+    </div>
+    <div class="done-msg" id="panel-done">Configurazione completata. Apertura Qwibo…</div>
+  </div>
+  <script src="setup.js"></script>
+</body>
+</html>

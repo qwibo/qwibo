@@ -1,0 +1,120 @@
+# MkDocs — Qwibo Desktop (pubblicato su qwibo.github.io/docs/)
+# Preview:  pip install -r docs/requirements.txt && mkdocs serve
+# Publish:  scripts\publish_docs.bat   (or python scripts/publish_docs.py)
+
+site_name: Qwibo
+site_description: Offline audio transcription and local LLM summaries for Windows
+site_author: Antonio Trento
+site_url: https://qwibo.github.io/docs/
+repo_url: https://github.com/qwibo/qwibo
+repo_name: qwibo/qwibo
+edit_uri: edit/main/docs/en/
+
+theme:
+  name: material
+  language: en
+  favicon: assets/images/favicon.png
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+
+plugins:
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: false
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: it
+          name: Italiano
+          build: true
+          nav_translations:
+            Home: Home
+            Getting started: Per iniziare
+            User guide: Guida utente
+            Troubleshooting: Risoluzione problemi
+            Development: Sviluppo
+            Reference: Riferimento
+            Changelog: Changelog
+            Overview: Panoramica
+            Download & install: Download e installazione
+            System requirements: Requisiti di sistema
+            First run: Primo avvio
+            Models: Modelli
+            App interface: Interfaccia
+            Transcribe & summarize: Trascrivere e riassumere
+            Jobs & output: Coda e output
+            Summarization: Riassunto
+            File formats: Formati file
+            Common issues: Problemi comuni
+            SmartScreen: SmartScreen
+            Build installer: Creare l'installer
+            FAQ: FAQ
+            Licenses: Licenze
+            Commercial license: Licenza commerciale
+  - search: {}
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - getting-started/overview.md
+      - getting-started/download.md
+      - getting-started/system-requirements.md
+      - getting-started/first-run.md
+      - getting-started/models.md
+  - User guide:
+      - user-guide/app-interface.md
+      - user-guide/transcribe-and-summarize.md
+      - user-guide/jobs-and-output.md
+      - user-guide/summarization.md
+      - user-guide/file-formats.md
+  - Troubleshooting:
+      - troubleshooting/common-issues.md
+      - troubleshooting/smartscreen.md
+  - Development:
+      - development/build-installer.md
+  - Reference:
+      - reference/faq.md
+      - reference/licenses.md
+      - reference/commercial-license.md
+  - Changelog: changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/qwibo/qwibo

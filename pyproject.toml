@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qwibo"
+version = "0.3.0"
+description = "Transcribe audio and video to text with NVIDIA NeMo (Italian)"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [{ name = "Antonio Trento" }]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.0",
+]
+
+# Extra installabili (fonte di verità — requirements/*.txt sono alias):
+#
+#   pip install -e ".[local]"     → installazione completa (consigliata)
+#   pip install -e ".[ui]"          → web UI + riassunto cloud (API key)
+#   pip install -e ".[summarize]"   → solo moduli riassunto LLM
+#   pip install -e ".[asr]"         → solo trascrizione NeMo
+#
+# Dipendenze riassunto LLM (in ui, summarize, local):
+#   openai, anthropic, google-genai, truststore (SSL Windows), psutil
+# Solo summarize/local aggiungono:
+#   llama-cpp-python, huggingface_hub (Qwen GGUF locale)
+
+[project.optional-dependencies]
+asr = [
+    "torch>=2.7",
+    "nemo_toolkit[asr]>=2.0",
+]
+ui = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.12",
+    "openai>=1.0",
+    "anthropic>=0.40",
+    "google-genai>=1.0",
+    "truststore>=0.10",
+    "psutil>=6.0",
+]
+summarize = [
+    "openai>=1.0",
+    "anthropic>=0.40",
+    "google-genai>=1.0",
+    "truststore>=0.10",
+    "llama-cpp-python>=0.3",
+    "psutil>=6.0",
+    "huggingface_hub>=0.26",
+]
+local = [
+    "torch>=2.7",
+    "nemo_toolkit[asr]>=2.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.12",
+    "openai>=1.0",
+    "anthropic>=0.40",
+    "google-genai>=1.0",
+    "truststore>=0.10",
+    "llama-cpp-python>=0.3",
+    "psutil>=6.0",
+    "huggingface_hub>=0.26",
+]
+dev = [
+    "ruff>=0.8",
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+]
+
+[project.scripts]
+qwibo = "qwibo.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+qwibo = ["ui/templates/**/*", "ui/static/**/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

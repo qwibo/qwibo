@@ -1,0 +1,71 @@
+{
+  "name": "qwibo-desktop",
+  "version": "0.1.0-alpha.1",
+  "description": "Qwibo — app desktop retail (Electron + Python embedded)",
+  "main": "src/main.js",
+  "author": "Antonio Trento",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "electron .",
+    "predist:win": "node scripts/check-build.js",
+    "dist:win": "electron-builder --win nsis",
+    "dist": "npm run dist:win"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "net.antoniotrento.qwibo.desktop",
+    "productName": "Qwibo",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "src/**/*",
+      "setup/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/runtime-venv",
+        "to": "runtime-venv",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "build/ffmpeg",
+        "to": "ffmpeg",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": [
+          "entrypoint.py",
+          "download_models.py",
+          "vendor/**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "artifactName": "Qwibo-Setup-${version}.${ext}",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "shortcutName": "Qwibo"
+    }
+  }
+}
