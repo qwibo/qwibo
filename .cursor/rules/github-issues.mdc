@@ -1,32 +1,36 @@
 ---
-description: Tracciamento bug/task via GitHub Issues (script Python)
+description: Tracciamento bug/task via GitHub Issues — issuebeam
 alwaysApply: true
 ---
 
-# GitHub Issues — fonte di verità
+# GitHub Issues — fonte di verità (issuebeam)
 
-Per **bug**, **evolutive** e **task di sprint**, preferire **GitHub Issues** su [qwibo/qwibo](https://github.com/qwibo/qwibo/issues) tramite:
+Per **bug**, **evolutive** e **task di sprint**, preferire **GitHub Issues** tramite:
 
-```cmd
+```bash
 python scripts/github_issue.py <comando>
 ```
 
 **L'agente deve eseguire lo script direttamente** (non chiedere all'utente comandi manuali).
 
-Token letto automaticamente da (in ordine):
-1. `GITHUB_TOKEN` nel processo
-2. **Variabili utente Windows** (registry — funziona anche nel terminale Cursor)
-3. `.env` nella root del repo
-4. `data/.secrets/github_token` (gitignored)
+> **Piattaforma:** questa regola è per **Cursor**. Per Claude Code, Copilot, Windsurf e altri tool vedi `AGENTS.md`, `CLAUDE.md` e [issuebeam.github.io/docs/platforms/overview/](https://issuebeam.github.io/docs/platforms/overview/).
 
-Guida: [tracker/README.md](../tracker/README.md).
+Repository configurato in `tracker/github_repo`, `.env` (`GITHUB_REPO`) o variabile d'ambiente.
+
+Token letto automaticamente da (in ordine):
+1. `GITHUB_TOKEN` nel processo (tutti i SO)
+2. **Solo Windows:** variabili utente da registry (aiuta i terminali IDE)
+3. `.env` nella root del repo
+4. `.secrets/github_token` (gitignored)
+
+Guida: [issuebeam.github.io/docs/it](https://issuebeam.github.io/docs/it/) · Piattaforme: [issuebeam.github.io/docs/it/platforms/overview/](https://issuebeam.github.io/docs/it/platforms/overview/) · Sito: [issuebeam.github.io](https://issuebeam.github.io) · CLI: [tracker/README.md](../tracker/README.md).
 
 ## Quando l'utente segnala un problema o chiede lavoro
 
-1. **Verifica** se esiste già un'issue (`list` o ricerca per titolo/legacy ID).
-2. **Crea** issue con `create` (o suggerisci import da manifest se è un item legacy noto).
-3. **Non creare** nuovi file in `bug-fix/*.md` per tracciare bug aperti — quella cartella è solo **post-mortem** e archivio.
-4. I piani in `microevolutive/active/` restano **specifica dettagliata**; lo stato operativo vive su GitHub Issues.
+1. **Verifica** se esiste già un'issue (`list` o ricerca per titolo / legacy ID).
+2. **Crea** issue con `create` (o import da manifest se è un item legacy noto).
+3. **Non creare** nuovi file markdown sparsi solo per tracciare bug aperti — usa GitHub Issues.
+4. I piani dettagliati in `docs/` o cartelle dedicate restano **specifica**; lo stato operativo vive su GitHub.
 
 ## Commit e PR
 
@@ -44,25 +48,24 @@ o `Closes #123` / `Refs #123` se parziale.
 |-------|-----|
 | `bug` | Comportamento errato o regressione |
 | `enhancement` | Miglioramento prodotto non bug |
-| `task` | Task sprint / piano microevolutivo |
+| `task` | Task sprint / lavoro pianificato |
 | `documentation` | Solo docs |
 | `priority-high` / `priority-medium` / `priority-low` | Urgenza |
-| `area-ui` | Interfaccia HTMX / Electron |
-| `area-summary` | Pipeline riassunto LLM |
-| `area-asr` | Trascrizione / NeMo |
-| `area-desktop` | Installer Electron, shell desktop |
-| `area-docker` | Deploy Docker |
+| `area-frontend` | UI, UX, client |
+| `area-backend` | API, servizi, logica server |
+| `area-infra` | CI/CD, Docker, deploy |
+| `area-docs` | README, guide, sito |
 | `imported` | Migrato da tracker locale legacy |
 
-Nel body delle issue importate, includere **`Legacy ID:`** (es. `BUG-SUM-022`, `PLAN_UI_DESKTOP`) e link al file markdown locale.
+Nel body delle issue importate, includere **`Legacy ID:`** (es. `BUG-001`, `TASK-UI-042`) e link al file markdown locale.
 
 ## Comandi utili
 
-```cmd
+```bash
 python scripts/github_issue.py labels --apply
 python scripts/github_issue.py import --dry-run
 python scripts/github_issue.py import --apply
-python scripts/github_issue.py create "Titolo" --labels bug,area-ui --body "..."
+python scripts/github_issue.py create "Titolo" --labels bug,area-frontend --body "..."
 python scripts/github_issue.py list
 python scripts/github_issue.py comment N --body "..."
 python scripts/github_issue.py close N
@@ -71,6 +74,6 @@ python scripts/github_issue.py close-batch 1 2 3 --reason "..."
 
 **Regola agente:** eseguire sempre `python scripts/github_issue.py` dal repo — non delegare comandi shell all'utente se il token è configurato.
 
-## Cursor chat (italiano)
+## Chat con l'agente (italiano)
 
-Se l'utente dice *«apri issue per…»*, *«traccia bug…»*, *«crea task GitHub…»* → usa lo script, non nuovi markdown in `bug-fix/`.
+Se l'utente dice *«apri issue per…»*, *«traccia bug…»*, *«crea task GitHub…»* → usa lo script, non nuovi markdown di tracking.

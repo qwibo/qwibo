@@ -2,7 +2,7 @@
 # All rights reserved. Use subject to the terms in the LICENSE file.
 
 #!/usr/bin/env python3
-"""GitHub Issues CLI for Qwibo — stdlib only (urllib), no gh CLI."""
+"""GitHub Issues CLI for issuebeam — stdlib only (urllib), no gh CLI."""
 
 from __future__ import annotations
 
@@ -18,16 +18,23 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+from agent_feedback import after_success, cmd_feedback  # noqa: E402
 LABELS_FILE = ROOT / "tracker" / "labels.yml"
 MANIFEST_FILE = ROOT / "tracker" / "import-manifest.json"
-TOKEN_FILE = ROOT / "data" / ".secrets" / "github_token"
+REPO_FILE = ROOT / "tracker" / "github_repo"
+TOKEN_FILE = ROOT / ".secrets" / "github_token"
 ENV_FILE = ROOT / ".env"
 API_BASE = "https://api.github.com"
+DEFAULT_REPO = "issuebeam/issuebeam"
 _ssl_ready = False
 
 
 def ensure_ssl() -> None:
-    """Trust store Windows (stesso fix di qwibo/http_ssl.py)."""
+    """Trust store Windows (optional truststore package)."""
     global _ssl_ready
     if _ssl_ready:
         return
@@ -40,8 +47,51 @@ def ensure_ssl() -> None:
     _ssl_ready = True
 
 
+def _value_from_dotenv(path: Path, key_name: str) -> str:
+    if not path.is_file():
+        return ""
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, _, val = stripped.partition("=")
+        if key.strip() == key_name:
+            return val.strip().strip('"').strip("'")
+    return ""
+
+
+def _slug_from_file(path: Path) -> str:
+    if not path.is_file():
+        return ""
+    return path.read_text(encoding="utf-8").strip()
+
+
 def repo_slug() -> str:
-    return os.environ.get("QWIBO_GITHUB_REPO", "qwibo/qwibo")
+    """Repo owner/name: GITHUB_REPO env → .env → tracker/github_repo."""
+    sources = (
+        os.environ.get("GITHUB_REPO", "").strip(),
+        _value_from_dotenv(ENV_FILE, "GITHUB_REPO"),
+        _slug_from_file(REPO_FILE),
+    )
+    for slug in sources:
+        if slug and "/" in slug:
+            return slug
+    return DEFAULT_REPO
+
+
+def require_repo() -> str:
+    slug = repo_slug()
+    if not slug:
+        print("ERRORE: repository GitHub non configurato.", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Una sola configurazione (in ordine di lettura):", file=sys.stderr)
+        print("  1. Variabile GITHUB_REPO (sessione o .env)", file=sys.stderr)
+        print(f"  2. {ENV_FILE.relative_to(ROOT)}  →  GITHUB_REPO=owner/repo", file=sys.stderr)
+        print(f"  3. {REPO_FILE.relative_to(ROOT)}  →  owner/repo su una riga", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Oppure: python scripts/github_issue.py --repo owner/repo <comando>", file=sys.stderr)
+        sys.exit(1)
+    return slug
 
 
 def _token_from_windows_user() -> str:
@@ -58,19 +108,6 @@ def _token_from_windows_user() -> str:
         return ""
 
 
-def _token_from_dotenv(path: Path) -> str:
-    if not path.is_file():
-        return ""
-    for line in path.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or "=" not in stripped:
-            continue
-        key, _, val = stripped.partition("=")
-        if key.strip() == "GITHUB_TOKEN":
-            return val.strip().strip('"').strip("'")
-    return ""
-
-
 def _token_from_file(path: Path) -> str:
     if not path.is_file():
         return ""
@@ -78,11 +115,11 @@ def _token_from_file(path: Path) -> str:
 
 
 def resolve_token() -> str:
-    """Token GitHub: env processo → Windows User → .env → data/.secrets/github_token."""
+    """Token GitHub: env processo → Windows User → .env → .secrets/github_token."""
     sources = (
         os.environ.get("GITHUB_TOKEN", "").strip(),
         _token_from_windows_user(),
-        _token_from_dotenv(ENV_FILE),
+        _value_from_dotenv(ENV_FILE, "GITHUB_TOKEN"),
         _token_from_file(TOKEN_FILE),
     )
     for token in sources:
@@ -97,11 +134,11 @@ def get_token() -> str:
         print("ERRORE: token GitHub non trovato.", file=sys.stderr)
         print("", file=sys.stderr)
         print("Una sola configurazione (in ordine di lettura):", file=sys.stderr)
-        print("  1. Variabile GITHUB_TOKEN (sessione o Windows → Variabili utente)", file=sys.stderr)
+        print("  1. Variabile GITHUB_TOKEN (env di sessione o utente — tutti i SO; su Windows anche registry)", file=sys.stderr)
         print(f"  2. {ENV_FILE.relative_to(ROOT)}  →  GITHUB_TOKEN=...", file=sys.stderr)
         print(f"  3. {TOKEN_FILE.relative_to(ROOT)}  →  token su una riga", file=sys.stderr)
         print("", file=sys.stderr)
-        print("Il file in data/.secrets/ è gitignored — sicuro per uso locale.", file=sys.stderr)
+        print("Il file in .secrets/ è gitignored — sicuro per uso locale.", file=sys.stderr)
         sys.exit(1)
     return token
 
@@ -119,7 +156,7 @@ def api_request(
     headers = {
         "Accept": accept,
         "Authorization": f"Bearer {token}",
-        "User-Agent": "qwibo-github-issue-script",
+        "User-Agent": "issuebeam",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     if data is not None:
@@ -185,7 +222,7 @@ def legacy_id_from_body(body: str) -> str | None:
 
 
 def list_issues(token: str, *, state: str = "open", limit: int = 30) -> None:
-    repo = repo_slug()
+    repo = require_repo()
     owner, name = repo.split("/", 1)
     issues = api_request(
         "GET",
@@ -214,7 +251,7 @@ def create_issue(
     body: str,
     labels: list[str] | None = None,
 ) -> dict[str, Any]:
-    repo = repo_slug()
+    repo = require_repo()
     owner, name = repo.split("/", 1)
     payload: dict[str, Any] = {"title": title, "body": body}
     if labels:
@@ -232,7 +269,7 @@ def cmd_create(args: argparse.Namespace, token: str) -> None:
 
 
 def cmd_comment(args: argparse.Namespace, token: str) -> None:
-    repo = repo_slug()
+    repo = require_repo()
     owner, name = repo.split("/", 1)
     body = args.body
     if args.body_file:
@@ -247,7 +284,7 @@ def cmd_comment(args: argparse.Namespace, token: str) -> None:
 
 
 def cmd_close(args: argparse.Namespace, token: str) -> None:
-    repo = repo_slug()
+    repo = require_repo()
     owner, name = repo.split("/", 1)
     if getattr(args, "reason", None):
         api_request(
@@ -274,7 +311,7 @@ def cmd_close_batch(args: argparse.Namespace, token: str) -> None:
 
 
 def fetch_repo_labels(token: str) -> dict[str, dict[str, Any]]:
-    repo = repo_slug()
+    repo = require_repo()
     owner, name = repo.split("/", 1)
     existing = api_request("GET", f"/repos/{owner}/{name}/labels?per_page=100", token=token)
     if not isinstance(existing, list):
@@ -293,7 +330,7 @@ def cmd_labels(args: argparse.Namespace, token: str) -> None:
         print("\nUsa --apply per crearle/aggiornarle su GitHub.")
         return
 
-    repo = repo_slug()
+    repo = require_repo()
     owner, name = repo.split("/", 1)
     existing = fetch_repo_labels(token)
     created = updated = 0
@@ -315,11 +352,11 @@ def cmd_labels(args: argparse.Namespace, token: str) -> None:
         else:
             api_request("POST", f"/repos/{owner}/{name}/labels", token=token, data=payload)
             created += 1
-    print(f"Labels: {created} create, {updated} aggiornate su {repo_slug()}")
+    print(f"Labels: {created} create, {updated} aggiornate su {require_repo()}")
 
 
 def search_issue_by_legacy_id(token: str, legacy_id: str) -> dict[str, Any] | None:
-    repo = repo_slug()
+    repo = require_repo()
     owner, name = repo.split("/", 1)
     query = quote(f'repo:{owner}/{name} is:issue "{legacy_id}" in:body', safe="")
     result = api_request("GET", f"/search/issues?q={query}&per_page=5", token=token)
@@ -379,11 +416,11 @@ def cmd_import(args: argparse.Namespace, token: str) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="GitHub Issues CLI per Qwibo (stdlib, GITHUB_TOKEN richiesto).",
+        description="GitHub Issues CLI (stdlib, GITHUB_TOKEN + GITHUB_REPO richiesti).",
     )
     parser.add_argument(
         "--repo",
-        help="Override repo owner/name (default: QWIBO_GITHUB_REPO o qwibo/qwibo)",
+        help="Override repo owner/name (default: GITHUB_REPO env, .env, tracker/github_repo, or issuebeam/issuebeam)",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -421,6 +458,24 @@ def build_parser() -> argparse.ArgumentParser:
     p_import.add_argument("--dry-run", action="store_true", help="Solo anteprima (default)")
     p_import.add_argument("--apply", action="store_true", help="Crea le issue su GitHub")
 
+    p_feedback = sub.add_parser(
+        "feedback",
+        help="Optional maintainer feedback or email signup (not GitHub Issues)",
+    )
+    p_feedback.add_argument("message", nargs="?", default="")
+    p_feedback.add_argument("--email", default="")
+    p_feedback.add_argument(
+        "--subscribe",
+        action="store_true",
+        help="Email signup only (requires --email)",
+    )
+    p_feedback.add_argument(
+        "--decline",
+        action="store_true",
+        help="User declined; silence prompts for 90 days",
+    )
+    p_feedback.add_argument("--locale", default="")
+
     return parser
 
 
@@ -429,7 +484,10 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.repo:
-        os.environ["QWIBO_GITHUB_REPO"] = args.repo
+        os.environ["GITHUB_REPO"] = args.repo
+
+    if args.command == "feedback":
+        return cmd_feedback(args)
 
     token = get_token()
 
@@ -452,6 +510,8 @@ def main() -> int:
     else:
         parser.print_help()
         return 1
+
+    after_success(args.command)
     return 0
 
 

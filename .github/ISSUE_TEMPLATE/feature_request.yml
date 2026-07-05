@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Idee e scenari utente. Per sprint già pianificati vedi le issue con label `task` o i piani in `microevolutive/`.
+        Idee e scenari utente. Per lavoro già pianificato usa il template **Task sprint** o le issue con label `task`.
 
   - type: textarea
     id: problem
@@ -40,8 +40,8 @@ body:
     attributes:
       label: Ambito
       options:
-        - label: Desktop Windows
-        - label: Backend Python
-        - label: Docker self-hosted
-        - label: Sito / docs
+        - label: Frontend
+        - label: Backend
+        - label: Infrastruttura / CI
+        - label: Documentazione
         - label: Fuori sprint attuale (backlog lungo)

@@ -6,14 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Segnala un bug. Per lavoro in corso usa le [Issues](https://github.com/qwibo/qwibo/issues) come fonte unica — non aprire file in `bug-fix/` salvo post-mortem lunghi.
+        Segnala un bug. Per lavoro in corso usa le **Issues** come fonte unica — evita file markdown sparsi per tracciare bug aperti.
 
   - type: textarea
     id: what-happened
     attributes:
       label: Cosa succede
       description: Comportamento osservato
-      placeholder: "Dopo aver accodato un file, il riassunto non parte anche con checkbox ON..."
+      placeholder: "Dopo il login la pagina resta bianca su Safari..."
     validations:
       required: true
 
@@ -29,8 +29,8 @@ body:
     attributes:
       label: Passi per riprodurre
       placeholder: |
-        1. Avvia app desktop / `qwibo ui`
-        2. Carica file X
+        1. Apri l'app / URL
+        2. Esegui azione X
         3. ...
     validations:
       required: true
@@ -40,12 +40,9 @@ body:
     attributes:
       label: Area
       options:
-        - UI / UX
-        - Trascrizione ASR
-        - Riassunto LLM
-        - Installer Windows
-        - Docker
-        - CLI
+        - Frontend / UI
+        - Backend / API
+        - Infrastruttura / Deploy
         - Documentazione
         - Altro
     validations:
@@ -54,14 +51,14 @@ body:
   - type: input
     id: version
     attributes:
-      label: Versione Qwibo
-      placeholder: "0.3.0 / installer alpha 0.1.0-alpha.1"
+      label: Versione / commit
+      placeholder: "v1.2.0 / abc1234"
 
   - type: textarea
     id: environment
     attributes:
       label: Ambiente
-      placeholder: "Windows 11, 32 GB RAM, Python 3.13, GPU no..."
+      placeholder: "Windows 11, Chrome 120, Node 20..."
 
   - type: textarea
     id: logs
