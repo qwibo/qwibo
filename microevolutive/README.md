@@ -49,7 +49,8 @@ I piani in `done/` restano come riferimento storico; non vanno riaperti salvo re
 
 | Cartella | Ruolo |
 |----------|--------|
-| `bug-fix/` | Cosa è rotto **oggi** (registro bug + fix puntuali) |
+| [`tracker/`](../tracker/) + [GitHub Issues](https://github.com/qwibo/qwibo/issues) | **Fonte di verità** — bug aperti, task sprint, priorità |
+| `bug-fix/` | Archivio storico e post-mortem (`TRACCIAMENTO-BUG.md`) |
 | `evolutive/` | **Perché** — scenari utente e idee non in sprint |
 | `strategia-release/` | Go-to-market alpha (hosting, marketing, build Mac) |
 | `desktop-electron/` | Codice installer + `WINDOWS-RELEASE-FIXES.md` |

@@ -1,0 +1,76 @@
+---
+description: Tracciamento bug/task via GitHub Issues (script Python)
+alwaysApply: true
+---
+
+# GitHub Issues — fonte di verità
+
+Per **bug**, **evolutive** e **task di sprint**, preferire **GitHub Issues** su [qwibo/qwibo](https://github.com/qwibo/qwibo/issues) tramite:
+
+```cmd
+python scripts/github_issue.py <comando>
+```
+
+**L'agente deve eseguire lo script direttamente** (non chiedere all'utente comandi manuali).
+
+Token letto automaticamente da (in ordine):
+1. `GITHUB_TOKEN` nel processo
+2. **Variabili utente Windows** (registry — funziona anche nel terminale Cursor)
+3. `.env` nella root del repo
+4. `data/.secrets/github_token` (gitignored)
+
+Guida: [tracker/README.md](../tracker/README.md).
+
+## Quando l'utente segnala un problema o chiede lavoro
+
+1. **Verifica** se esiste già un'issue (`list` o ricerca per titolo/legacy ID).
+2. **Crea** issue con `create` (o suggerisci import da manifest se è un item legacy noto).
+3. **Non creare** nuovi file in `bug-fix/*.md` per tracciare bug aperti — quella cartella è solo **post-mortem** e archivio.
+4. I piani in `microevolutive/active/` restano **specifica dettagliata**; lo stato operativo vive su GitHub Issues.
+
+## Commit e PR
+
+Referenzia l'issue nei commit che la risolvono:
+
+```
+Fixes #123
+```
+
+o `Closes #123` / `Refs #123` se parziale.
+
+## Convenzioni label
+
+| Label | Uso |
+|-------|-----|
+| `bug` | Comportamento errato o regressione |
+| `enhancement` | Miglioramento prodotto non bug |
+| `task` | Task sprint / piano microevolutivo |
+| `documentation` | Solo docs |
+| `priority-high` / `priority-medium` / `priority-low` | Urgenza |
+| `area-ui` | Interfaccia HTMX / Electron |
+| `area-summary` | Pipeline riassunto LLM |
+| `area-asr` | Trascrizione / NeMo |
+| `area-desktop` | Installer Electron, shell desktop |
+| `area-docker` | Deploy Docker |
+| `imported` | Migrato da tracker locale legacy |
+
+Nel body delle issue importate, includere **`Legacy ID:`** (es. `BUG-SUM-022`, `PLAN_UI_DESKTOP`) e link al file markdown locale.
+
+## Comandi utili
+
+```cmd
+python scripts/github_issue.py labels --apply
+python scripts/github_issue.py import --dry-run
+python scripts/github_issue.py import --apply
+python scripts/github_issue.py create "Titolo" --labels bug,area-ui --body "..."
+python scripts/github_issue.py list
+python scripts/github_issue.py comment N --body "..."
+python scripts/github_issue.py close N
+python scripts/github_issue.py close-batch 1 2 3 --reason "..."
+```
+
+**Regola agente:** eseguire sempre `python scripts/github_issue.py` dal repo — non delegare comandi shell all'utente se il token è configurato.
+
+## Cursor chat (italiano)
+
+Se l'utente dice *«apri issue per…»*, *«traccia bug…»*, *«crea task GitHub…»* → usa lo script, non nuovi markdown in `bug-fix/`.

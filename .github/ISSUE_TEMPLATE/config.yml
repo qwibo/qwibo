@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentazione Qwibo
+    url: https://qwibo.github.io/docs/
+    about: Guida installazione, uso desktop e troubleshooting
+  - name: Sito web
+    url: https://qwibo.github.io
+    about: Download installer Windows e panoramica prodotto

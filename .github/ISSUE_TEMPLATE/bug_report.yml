@@ -1,0 +1,70 @@
+name: Bug
+description: Qualcosa non funziona come previsto
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Segnala un bug. Per lavoro in corso usa le [Issues](https://github.com/qwibo/qwibo/issues) come fonte unica — non aprire file in `bug-fix/` salvo post-mortem lunghi.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Cosa succede
+      description: Comportamento osservato
+      placeholder: "Dopo aver accodato un file, il riassunto non parte anche con checkbox ON..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Cosa ti aspettavi
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Passi per riprodurre
+      placeholder: |
+        1. Avvia app desktop / `qwibo ui`
+        2. Carica file X
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - UI / UX
+        - Trascrizione ASR
+        - Riassunto LLM
+        - Installer Windows
+        - Docker
+        - CLI
+        - Documentazione
+        - Altro
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Versione Qwibo
+      placeholder: "0.3.0 / installer alpha 0.1.0-alpha.1"
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      placeholder: "Windows 11, 32 GB RAM, Python 3.13, GPU no..."
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log / screenshot
+      description: Incolla errori o link screenshot (senza dati sensibili)

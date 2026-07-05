@@ -11,7 +11,7 @@ Offline audio transcription and local LLM summaries for Windows.
 | `docs/` | MkDocs for **desktop** (published to qwibo.github.io) |
 | `microevolutive/` | Sprint plans: `active/`, `done/`, `reference/` |
 | `evolutive/` | User scenarios + deferred ideas (`old/` = Streamlit era archive) |
-| `bug-fix/` | Bug registry and fix specs |
+| `tracker/` | GitHub Issues setup — [Issues](https://github.com/qwibo/qwibo/issues) (source of truth) |
 | `strategia-release/` | Alpha release strategy (hosting, marketing, Mac build) |
 | repository privato **`qwibo-leads`** | Lead collection API (Docker on mini PC — not in this repo; see private `qwibo-leads` repo) |
 

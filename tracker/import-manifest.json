@@ -1,0 +1,72 @@
+[
+  {
+    "title": "CLI transcribe overwrites output for same stem",
+    "labels": ["bug", "priority-medium", "area-asr", "imported"],
+    "body": "**Legacy ID:** `BUG-ARCH-012`\n\n**Stato legacy:** Aperto (solo CLI)\n\n`qwibo transcribe video.mp4 -o data/output` sovrascrive `video.txt` se rieseguito. La UI usa il registro `jobs/` senza overwrite; la CLI no.\n\n**Fix proposto:** allineare la CLI al sistema `jobs/` della UI.\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-arch-012--export-cli-sovrascrive-per-stem-uguale)"
+  },
+  {
+    "title": "Legacy flat output files not in job history",
+    "labels": ["bug", "priority-low", "area-asr", "imported"],
+    "body": "**Legacy ID:** `BUG-ARCH-015`\n\n**Stato legacy:** Aperto\n\nTrascrizioni pre-fix (flat in `data/output/*.txt`) non compaiono in `index.json` / storico UI.\n\n**Fix proposto:** script migrazione `scripts/migrate-legacy-jobs.py` (o equivalente).\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-arch-015--file-legacy-dataoutputtxt-fuori-storico)"
+  },
+  {
+    "title": "Local Qwen summary quality insufficient for production",
+    "labels": ["bug", "priority-high", "area-summary", "imported"],
+    "body": "**Legacy ID:** `BUG-SUM-022`\n\n**Stato legacy:** Aperto — Critica (qualità prodotto)\n\nRiassunti Qwen locale (`qwen2.5-3b-instruct-q4_k_m`) insufficienti: meta-frasi, allucinazioni, ripetizioni. Benchmark su campioni `medio`/`lungo`/`molto-lungo` (30 giu 2026).\n\n**Cause:** prompt debole, single-pass su testi densi, soglia map-reduce troppo alta (6000 token).\n\n**File:** `summarize_providers/prompt.py`, `summarize.py`, `summarize_providers/local_qwen.py`\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-sum-022--qualità-riassunto-qwen-locale-insufficiente-per-uso-produzione)"
+  },
+  {
+    "title": "Summary meta-phrases (\"In questa trascrizione…\")",
+    "labels": ["bug", "priority-medium", "area-summary", "imported"],
+    "body": "**Legacy ID:** `BUG-SUM-023`\n\n**Stato legacy:** Aperto (parent BUG-SUM-022)\n\nRiassunti iniziano con meta-frasi tipo *«In questa trascrizione, Alberto Cavaliere presenta…»* invece del contenuto.\n\n**Fix proposto:** regole esplicite in `prompt.py` — vietare riferimenti al testo/trascrizione come soggetto.\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-sum-023--meta-frasi-nei-riassunti)"
+  },
+  {
+    "title": "Summary hallucinations on ASR errors",
+    "labels": ["bug", "priority-high", "area-summary", "imported"],
+    "body": "**Legacy ID:** `BUG-SUM-024`\n\n**Stato legacy:** Aperto (parent BUG-SUM-022)\n\nIl modello 3B inventa contenuto per colmare errori ASR (es. «Gli orazzi e i curiazzi» → «oche vestite e trottillate»).\n\n**Fix proposto:** prompt più rigido; map-reduce; valutare modello locale più capace.\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-sum-024--allucinazioni-su-errori-asr)"
+  },
+  {
+    "title": "Map-reduce not triggered for medium texts (local provider)",
+    "labels": ["bug", "priority-high", "area-summary", "imported"],
+    "body": "**Legacy ID:** `BUG-SUM-025`\n\n**Stato legacy:** Aperto (parent BUG-SUM-022)\n\nTesti ~8k char restano in `summary_strategy: single` perché soglia map-reduce locale è 6000 token.\n\n**Fix proposto:** map-reduce obbligatorio per provider `local` sotto soglia più bassa (~1500 token / ~4000 char); rispettare `summary_length` utente anche nei chunk.\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-sum-025--map-reduce-non-attivato-su-testi-medi-provider-locale)"
+  },
+  {
+    "title": "Local summary scalability for ~3h spoken audio",
+    "labels": ["bug", "priority-high", "area-summary", "imported"],
+    "body": "**Legacy ID:** `BUG-SUM-026`\n\n**Stato legacy:** Aperto — Critica (requisito prodotto)\n\nTrascrizione ASR su 3 h ok (chunk 30 s); riassunto locale non validato end-to-end. Merge piatto di 15+ chunk con Qwen 3B fragile.\n\n**Fix proposto:** map-reduce gerarchico (albero di merge), soglie per `local`, test di carico 3 h su mini PC 32 GB.\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-sum-026--scalabilità-riassunto-locale-su-3-ore-di-parlato)"
+  },
+  {
+    "title": "Job marked completed when summary failed",
+    "labels": ["bug", "priority-medium", "area-summary", "area-ui", "imported"],
+    "body": "**Legacy ID:** `BUG-PIPE-027`\n\n**Stato legacy:** Parziale\n\nIn `pipeline.py`, eccezione durante `summarize()` → `summary_error` valorizzato ma `job.status = completed`. Utente vede «Completato!» anche senza riassunto richiesto.\n\n**Mitigazione attuale:** `job_detail.html` distingue errori riassunto.\n\n**Backlog:** stato `completed_with_warnings` o flash esplicito in coda.\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-pipe-027--riassunto-fallito-ma-job-marcato-completed)"
+  },
+  {
+    "title": "Poor feedback during model loading (1–2 min)",
+    "labels": ["bug", "priority-low", "area-ui", "imported"],
+    "body": "**Legacy ID:** `BUG-UX-007`\n\n**Stato legacy:** Parziale\n\nProgress bar presente ma non distingue «caricamento modello» vs «trascrizione».\n\n**Backlog:** timer stimato, percentuale basata su fase.\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-ux-007--nessun-feedback-durante-caricamento-modello-12-min)"
+  },
+  {
+    "title": "SSL HuggingFace download failures on Windows",
+    "labels": ["bug", "priority-medium", "area-asr", "imported"],
+    "body": "**Legacy ID:** `BUG-ENV-001`\n\n**Stato legacy:** Parziale\n\n`SSLCertVerificationError` scaricando modelli da huggingface.co su Windows (antivirus, proxy, store certificati).\n\n**Fix applicati:** `curl.exe` in script download; modello locale da `models/`; API cloud con `truststore`.\n\n**Residuo:** download automatico ASR Parakeet da Python/HuggingFace può ancora fallire.\n\n**Riferimento locale:** [bug-fix/TRACCIAMENTO-BUG.md](../bug-fix/TRACCIAMENTO-BUG.md#bug-env-001--ssl-huggingface-su-windows)"
+  },
+  {
+    "title": "Desktop UI refactor — menu, theme, settings hub",
+    "labels": ["task", "priority-high", "area-ui", "area-desktop", "imported"],
+    "body": "**Legacy ID:** `PLAN_UI_DESKTOP`\n\n**Stato:** Da implementare\n\nRefactor UI FastAPI/HTMX dentro Electron: menu bar Windows nativo, tema light/dark persistito, pagina `/settings` unificata, layout desktop professionale.\n\n**Definition of Done (v1):** menu `Menu.setApplicationMenu`, tema light+dark, header app con logo, stati vuoti/loading curati.\n\n**Riferimento locale:** [microevolutive/active/PLAN_UI_DESKTOP.md](../microevolutive/active/PLAN_UI_DESKTOP.md)"
+  },
+  {
+    "title": "App i18n — UI + default ASR/summary languages (5 langs)",
+    "labels": ["task", "priority-high", "area-ui", "area-desktop", "imported"],
+    "body": "**Legacy ID:** `PLAN_APP_I18N`\n\n**Stato:** Da implementare\n\nInterfaccia tradotta e lingue predefinite (IT, EN, FR, ES, DE). Wizard lingua al primo avvio Electron; preferenze in `%APPDATA%/Qwibo/preferences.json`.\n\n**Non confondere con:** pipeline ASR multilingua (già done).\n\n**Riferimento locale:** [microevolutive/active/PLAN_APP_I18N.md](../microevolutive/active/PLAN_APP_I18N.md)"
+  },
+  {
+    "title": "Lead generation — Electron first-run modal (phase 3)",
+    "labels": ["task", "priority-medium", "area-desktop", "imported"],
+    "body": "**Legacy ID:** `PLAN_LEAD_GENERATION` — Fase 3\n\n**Stato:** Server live ✅ · App da implementare\n\nModal opt-in al primo avvio Electron: email, checkbox consenso non pre-spuntata, POST a `https://qwiboleads.antoniotrento.net/v1/leads`. Token build-time (no commit).\n\n**DoD:** modal al primo avvio; iscrizione → lead via HTTPS; «Salta» → nessun invio.\n\n**Riferimento locale:** [microevolutive/active/PLAN_LEAD_GENERATION.md](../microevolutive/active/PLAN_LEAD_GENERATION.md#fase-3--modal-primo-avvio-nellapp-electron)"
+  },
+  {
+    "title": "Lead generation — offline queue and retry (phase 4)",
+    "labels": ["task", "priority-medium", "area-desktop", "imported"],
+    "body": "**Legacy ID:** `PLAN_LEAD_GENERATION` — Fase 4\n\n**Stato:** Da implementare (dopo Fase 3)\n\nSe invio lead fallisce → coda locale + retry al prossimo avvio. Timeout breve, mai bloccante.\n\n**DoD:** server spento → app funziona; alla riaccensione il lead arriva.\n\n**Riferimento locale:** [microevolutive/active/PLAN_LEAD_GENERATION.md](../microevolutive/active/PLAN_LEAD_GENERATION.md#fase-4--robustezza--offline)"
+  }
+]

@@ -44,7 +44,8 @@ Non cancellare: costa poco tenerli. Non usarli per pianificare sprint.
 
 | Cartella | Ruolo |
 |----------|--------|
-| `bug-fix/` | Correzioni e debito tecnico |
-| `microevolutive/active/` | **Prossimi sprint** |
+| [`tracker/`](../tracker/) + [GitHub Issues](https://github.com/qwibo/qwibo/issues) | Tracciamento attivo bug e task |
+| `bug-fix/` | Archivio bug risolti e specifiche storiche |
+| `microevolutive/active/` | **Prossimi sprint** (dettaglio piani) |
 | `strategia-release/` | Alpha: hosting, marketing, build Mac |
 | `docs/` | Documentazione utente |
