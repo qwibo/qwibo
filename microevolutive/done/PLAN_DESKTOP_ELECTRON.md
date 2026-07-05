@@ -2,7 +2,7 @@
 
 > **Data**: 2026-07-02 · **Stato**: ✅ **scelta ufficiale**  
 > **Decisione:** Electron + backend Python embedded (v1). Nuitka opzionale in v2.  
-> **Storico scelta:** [DESKTOP_CONFRONTO.md](./DESKTOP_CONFRONTO.md) · Tauri archiviato in [old/PLAN_DESKTOP_TAURI.md](./old/PLAN_DESKTOP_TAURI.md)  
+> **Storico scelta:** [DESKTOP_CONFRONTO.md](../reference/DESKTOP_CONFRONTO.md) · Tauri archiviato in [old/PLAN_DESKTOP_TAURI.md](../old/PLAN_DESKTOP_TAURI.md)  
 > **Obiettivo:** installer **Windows** e **macOS** retail, prodotto professionale mondiale (Win + Mac Intel + Apple Silicon).
 
 ---

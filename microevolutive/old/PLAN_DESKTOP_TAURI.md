@@ -1,6 +1,6 @@
 # Piano microevolutivo — App desktop (Tauri + sidecar Python)
 
-> **⚠️ ARCHIVIATO** — luglio 2026. Scelta ufficiale: [PLAN_DESKTOP_ELECTRON.md](../PLAN_DESKTOP_ELECTRON.md).  
+> **⚠️ ARCHIVIATO** — luglio 2026. Scelta ufficiale: [PLAN_DESKTOP_ELECTRON.md](../active/PLAN_DESKTOP_ELECTRON.md).  
 > **Data**: 2026-07-02 · **Stato**: ❌ non attivo · **Opzione**: A (scartata)  
 > **Obiettivo**: installer **Windows** e **macOS** per uso retail/commerciale,
 > con **time-to-market** rapido e packaging **affidabile** (embedded Python).  
@@ -216,4 +216,4 @@ start.bat
 - Tauri: https://v2.tauri.app/
 - Sidecar: https://v2.tauri.app/develop/sidecar/
 - python-build-standalone: https://github.com/astral-sh/python-build-standalone
-- Confronto: [DESKTOP_CONFRONTO.md](./DESKTOP_CONFRONTO.md)
+- Confronto: [DESKTOP_CONFRONTO.md](../reference/DESKTOP_CONFRONTO.md)

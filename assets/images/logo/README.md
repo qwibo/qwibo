@@ -21,6 +21,17 @@ La bobina (cerchio + perno) srotola il nastro che diventa **righe di testo**.
 | `logo-horizontal-light.svg` | Lockup orizzontale per sfondi chiari (docs, fatture, README). Testo in tracciati. |
 | `favicon.svg` | Icona quadrata arrotondata su fondo `#0f172a` — favicon / app icon / social avatar. |
 
+## Rigenerare i logo
+
+Dopo un cambio wordmark, dalla root del repo:
+
+```bash
+python scripts/build_qwibo_logos.py
+```
+
+Rigenera i SVG in questa cartella e li copia in `qwibo.github.io/assets/images/logo/`.
+Font: Segoe UI Bold su Windows (fallback se Inter non installato).
+
 ## Wordmark
 
 Disegnato in **Inter Bold** (wght 700, opsz 14), minuscolo, letter-spacing −1, corpo 40.

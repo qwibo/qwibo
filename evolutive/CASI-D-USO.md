@@ -189,7 +189,7 @@ Analisi degli scenari reali per capire **perché** le evolutive non sono optiona
 - CLI: `sbobina transcribe file.mp3 --language en`
 - Docs e sito aggiornati (“5 lingue core, un solo modello”)
 
-**Piano:** [microevolutive/PLAN_MULTILANG_ASR.md](../microevolutive/PLAN_MULTILANG_ASR.md)
+**Piano:** [microevolutive/done/PLAN_MULTILANG_ASR.md](../microevolutive/done/PLAN_MULTILANG_ASR.md)
 
 ---
 

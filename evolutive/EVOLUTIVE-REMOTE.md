@@ -1,6 +1,6 @@
 # Evolutive remote — Sbobinator
 
-Idee **utili ma non fondamentali** per il prodotto attuale. Non sono nel backlog operativo (`microevolutive/PLAN_BACKLOG.md`); si rivalutano solo se cambiano vincoli (tempo, hardware, richiesta utenti) o se un spike dimostra costo basso.
+Idee **utili ma non fondamentali** per il prodotto attuale. Non sono nel backlog operativo (`microevolutive/active/PLAN_BACKLOG.md`); si rivalutano solo se cambiano vincoli (tempo, hardware, richiesta utenti) o se un spike dimostra costo basso.
 
 **Criterio:** non blocca adozione, monetizzazione o affidabilità del flusso core (trascrivere italiano in locale, coda, export).
 

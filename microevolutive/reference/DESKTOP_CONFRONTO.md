@@ -2,7 +2,7 @@
 
 > **Data**: 2026-07-02 · **Stato**: ✅ **deciso**  
 > **Scelta:** **Electron** + backend Python **embedded** (v1). Nuitka opzionale in v2.  
-> **Piano attivo:** [PLAN_DESKTOP_ELECTRON.md](./PLAN_DESKTOP_ELECTRON.md)
+> **Piano attivo:** [PLAN_DESKTOP_ELECTRON.md](../active/PLAN_DESKTOP_ELECTRON.md)
 
 ---
 
@@ -63,5 +63,5 @@ Fase 2e — Nuitka (opzionale)        post-v1
 
 | File | Ruolo |
 |------|--------|
-| [PLAN_DESKTOP_ELECTRON.md](./PLAN_DESKTOP_ELECTRON.md) | **Piano esecutivo** |
+| [PLAN_DESKTOP_ELECTRON.md](../active/PLAN_DESKTOP_ELECTRON.md) | **Piano esecutivo** |
 | [old/PLAN_DESKTOP_TAURI.md](./old/PLAN_DESKTOP_TAURI.md) | Alternativa archiviata |
