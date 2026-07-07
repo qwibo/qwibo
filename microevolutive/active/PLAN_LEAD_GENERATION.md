@@ -125,7 +125,8 @@ X-App-Token: <LEADS_APP_TOKEN>
 | `install_id` | string | sì | UUID v4, generato al primo avvio, persistito |
 | `app_version` | string | sì | Es. `0.1.0-alpha.1` da `package.json` |
 | `os` | string | sì | Es. `win32-10.0.26200` (`process.platform` + release) |
-| `locale` | string | sì | Es. `it-IT` (`app.getLocale()`) |
+| `locale
+` | string | sì | Es. `it-IT` (`app.getLocale()`) |
 | `source` | string | no | Default `"first-run-modal"` |
 | `consent_text_ver` | string | no | Versione testo consenso mostrato (prova GDPR), es. `"2026-07"` |
 

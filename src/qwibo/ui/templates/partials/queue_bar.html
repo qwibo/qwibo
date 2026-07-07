@@ -1,0 +1,22 @@
+{% if running %}
+<div class="now-item now-playing">
+  <span class="now-icon">▶</span>
+  <div class="now-main">
+    <div class="now-title">{{ running.source_name }}</div>
+    <div class="now-progress"><div class="now-progress-fill" style="width: {{ running.progress_pct }}%"></div></div>
+  </div>
+  <span class="now-meta">{{ running.progress_pct }}% · {{ running.progress_message or t('now.processing') }}{% if queued_count %} · {{ queued_count }} {{ t('now.in_queue') }}{% endif %}</span>
+  <a class="btn btn-secondary btn-small" href="/jobs/{{ running.id }}">{{ t('action.open') }}</a>
+</div>
+{% elif queued_count %}
+<div class="now-item">
+  <span class="now-icon">⏳</span>
+  <div class="now-main"><div class="now-title">{{ queued_count }} {{ t('now.jobs_in_queue') }}</div></div>
+  <a class="btn btn-secondary btn-small" href="/jobs?filter=active">{{ t('now.see_queue') }}</a>
+</div>
+{% else %}
+<div class="now-item now-idle">
+  <span class="now-icon">●</span>
+  <span class="now-title muted">{{ t('now.idle') }}</span>
+</div>
+{% endif %}

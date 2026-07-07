@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Impostazioni — Qwibo{% endblock %}
+{% block topbar_title %}{{ t('nav.settings') }}{% endblock %}
+{% block topbar_subtitle %}{{ t('settings.subtitle') }}{% endblock %}
+
+{% block content %}
+  {% if flash %}
+  <div class="flash flash-{{ flash_type }}">{{ flash }}</div>
+  {% endif %}
+
+  <div class="tabbar" role="tablist">
+    <button type="button" class="tab-btn{% if active_tab == 'generale' %} active{% endif %}" data-tab="generale" role="tab">{{ t('tab.generale') }}</button>
+    <button type="button" class="tab-btn{% if active_tab == 'riassunto' %} active{% endif %}" data-tab="riassunto" role="tab">{{ t('tab.riassunto') }}</button>
+    <button type="button" class="tab-btn{% if active_tab == 'licenza' %} active{% endif %}" data-tab="licenza" role="tab">{{ t('tab.licenza') }}</button>
+    <button type="button" class="tab-btn{% if active_tab == 'feedback' %} active{% endif %}" data-tab="feedback" role="tab">{{ t('tab.feedback') }}</button>
+  </div>
+
+  {# ---------- GENERALE ---------- #}
+  <section class="tab-panel{% if active_tab == 'generale' %} active{% endif %}" id="tab-generale">
+    <div class="panel">
+      <h2>{{ t('gen.title') }}</h2>
+      <p class="hint">{{ t('gen.hint') }} <code>{{ preferences_path }}</code></p>
+      <form method="post" action="/api/settings/preferences" class="prefs-form">
+        <div class="prefs-grid">
+          <label>{{ t('gen.f.theme') }}
+            <select name="ui_theme" id="pref-theme">
+              <option value="system"{% if prefs.ui_theme == 'system' %} selected{% endif %}>{{ t('theme.system') }}</option>
+              <option value="dark"{% if prefs.ui_theme == 'dark' %} selected{% endif %}>{{ t('theme.dark') }}</option>
+              <option value="light"{% if prefs.ui_theme == 'light' %} selected{% endif %}>{{ t('theme.light') }}</option>
+            </select>
+          </label>
+          <label>{{ t('gen.f.ui_lang') }}
+            <select name="ui_locale" id="pref-ui-locale">
+              {% for lang in language_options %}
+              <option value="{{ lang.code }}"{% if lang.code == prefs.ui_locale %} selected{% endif %}>{{ lang.label }}</option>
+              {% endfor %}
+            </select>
+            <span class="hint">{{ t('gen.ui_lang_hint') }}</span>
+          </label>
+          <label>{{ t('gen.f.audio_default') }}
+            <select name="default_asr_language" id="pref-asr-default">
+              {% for lang in language_options %}
+              <option value="{{ lang.code }}"{% if lang.code == prefs.default_asr_language %} selected{% endif %}>{{ lang.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>{{ t('gen.f.summary_default') }}
+            <select name="default_summary_language" id="pref-summary-default">
+              {% for lang in language_options %}
+              <option value="{{ lang.code }}"{% if lang.code == prefs.default_summary_language %} selected{% endif %}>{{ lang.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>{{ t('gen.f.engine_default') }}
+            <select name="default_summary_provider">
+              <option value=""{% if not prefs.default_summary_provider %} selected{% endif %}>{{ t('gen.engine_auto') }}</option>
+              {% for p in summary_providers %}
+              <option value="{{ p.id }}"{% if p.id == prefs.default_summary_provider %} selected{% endif %}>{{ p.label }}{% if p.available %} ✓{% endif %}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>{{ t('gen.f.length_default') }}
+            <select name="default_summary_length">
+              <option value="auto"{% if prefs.default_summary_length == 'auto' %} selected{% endif %}>{{ t('opt.length.auto') }}</option>
+              <option value="short"{% if prefs.default_summary_length == 'short' %} selected{% endif %}>{{ t('opt.length.short') }}</option>
+              <option value="normal"{% if prefs.default_summary_length == 'normal' %} selected{% endif %}>{{ t('opt.length.normal') }}</option>
+              <option value="detailed"{% if prefs.default_summary_length == 'detailed' %} selected{% endif %}>{{ t('opt.length.detailed') }}</option>
+            </select>
+          </label>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" name="default_summary_enabled" value="true"{% if prefs.default_summary_enabled %} checked{% endif %}>
+          {{ t('gen.summary_on_default') }}
+        </label>
+        <div style="margin-top:1rem">
+          <button type="submit" class="btn btn-primary">{{ t('action.save_settings') }}</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {# ---------- RIASSUNTO ---------- #}
+  <section class="tab-panel{% if active_tab == 'riassunto' %} active{% endif %}" id="tab-riassunto">
+    {% include "partials/settings_riassunto.html" %}
+  </section>
+
+  {# ---------- LICENZA ---------- #}
+  <section class="tab-panel{% if active_tab == 'licenza' %} active{% endif %}" id="tab-licenza">
+    {% include "partials/settings_licenza.html" %}
+  </section>
+
+  {# ---------- FEEDBACK ---------- #}
+  <section class="tab-panel{% if active_tab == 'feedback' %} active{% endif %}" id="tab-feedback">
+    <div class="panel">
+      <h2>{{ t('fb.title') }}</h2>
+      <p class="hint">{{ t('fb.hint') }}</p>
+      <form method="post" action="/api/feedback" class="feedback-form" id="feedback-form">
+        <div class="prefs-grid">
+          <label>{{ t('fb.f.category') }}
+            <select name="category" id="fb-category">
+              <option value="bug">{{ t('fb.cat.bug') }}</option>
+              <option value="idea">{{ t('fb.cat.idea') }}</option>
+              <option value="general">{{ t('fb.cat.general') }}</option>
+            </select>
+          </label>
+          <label>{{ t('fb.f.email') }}
+            <input type="email" name="email" id="fb-email" placeholder="{{ t('fb.email_ph') }}">
+          </label>
+        </div>
+        <label style="display:block;margin-top:.5rem">{{ t('fb.f.description') }}
+          <textarea name="description" id="fb-description" rows="6" minlength="20" required
+                    placeholder="{{ t('fb.desc_ph') }}"></textarea>
+        </label>
+        <p class="hint">{{ t('fb.version_note_pre') }} <code>{{ version }}</code> · {{ os_name }} {{ t('fb.version_note_post') }}</p>
+        <div class="job-actions-row">
+          <button type="submit" class="btn btn-primary">{{ t('action.send_feedback') }}</button>
+          <button type="button" class="btn btn-secondary" id="fb-mail">{{ t('fb.open_email') }}</button>
+          <a class="btn btn-secondary" href="https://github.com/qwibo/qwibo/issues/new" target="_blank" rel="noopener">{{ t('fb.github_issue') }}</a>
+          <a class="btn btn-secondary" href="/api/support-bundle">{{ t('fb.support_bundle') }}</a>
+        </div>
+      </form>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    // Tab switching + deep-link (?tab= / #hash)
+    (function () {
+      var btns = document.querySelectorAll('.tab-btn');
+      var panels = document.querySelectorAll('.tab-panel');
+      function show(name) {
+        var found = false;
+        panels.forEach(function (p) {
+          var on = p.id === 'tab-' + name;
+          p.classList.toggle('active', on);
+          if (on) found = true;
+        });
+        btns.forEach(function (b) { b.classList.toggle('active', b.dataset.tab === name); });
+        if (found && history.replaceState) {
+          history.replaceState(null, '', '?tab=' + name);
+        }
+      }
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { show(b.dataset.tab); });
+      });
+      var hash = (location.hash || '').replace('#', '');
+      if (hash && document.getElementById('tab-' + hash)) show(hash);
+    })();
+
+    // Tema: applica subito al cambio (coerente col toggle in alto)
+    (function () {
+      var sel = document.getElementById('pref-theme');
+      if (!sel) return;
+      sel.addEventListener('change', function () {
+        var v = sel.value;
+        var applied = v === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : v;
+        document.documentElement.setAttribute('data-theme', applied);
+        try { localStorage.setItem('qwibo-theme', applied); } catch (e) {}
+      });
+    })();
+
+    // Lingua interfaccia: i default audio/riassunto SEGUONO la lingua UI (restano modificabili a mano)
+    (function () {
+      var ui = document.getElementById('pref-ui-locale');
+      var asr = document.getElementById('pref-asr-default');
+      var sum = document.getElementById('pref-summary-default');
+      if (!ui || !asr || !sum) return;
+      function setIfHas(sel, val) {
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === val) { sel.value = val; return; }
+        }
+      }
+      ui.addEventListener('change', function () {
+        setIfHas(asr, ui.value);
+        setIfHas(sum, ui.value);
+      });
+    })();
+
+    // Feedback: apre il client email con il messaggio precompilato
+    (function () {
+      var btn = document.getElementById('fb-mail');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var cat = document.getElementById('fb-category').value;
+        var desc = document.getElementById('fb-description').value;
+        var subject = 'Qwibo feedback [' + cat + '] v{{ version }}';
+        var body = desc + '\n\n---\nQwibo {{ version }} · {{ os_name }}';
+        window.location.href = 'mailto:lantoniotrento@gmail.com?subject=' +
+          encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      });
+    })();
+  </script>
+{% endblock %}

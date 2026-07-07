@@ -1,151 +1,134 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Qwibo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css">
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-</head>
-<body>
-  {% include "partials/license_banner.html" %}
-  <div class="layout">
-    <aside class="sidebar">
-      <h2>Qwibo</h2>
-      {% include "partials/nav.html" %}
-      <hr>
-      <form id="settings-form" class="settings-form">
-        <label>Dispositivo
-          <select name="device" form="enqueue-form">
-            <option value="auto" selected>auto</option>
-            <option value="cpu">cpu</option>
-            <option value="cuda">cuda</option>
-          </select>
-        </label>
-        <label>Modello ASR
-          <input type="text" name="model_name" form="enqueue-form" value="{{ default_model }}">
-        </label>
-        <label>Lingua audio
-          <select name="asr_language" form="enqueue-form" id="asr-language-select">
-            {% for lang in language_options %}
-            <option value="{{ lang.code }}"{% if lang.code == default_asr_language %} selected{% endif %}>
-              {{ lang.label }}
-            </option>
-            {% endfor %}
-          </select>
-        </label>
-        <hr>
-        <h3>Riassunto</h3>
-        <a href="/settings/summary" class="btn btn-secondary settings-cta">Motori e API key →</a>
-        <label class="checkbox">
-          <input type="checkbox" id="summary-enabled-cb"{% if summary_checked %} checked{% endif %}>
-          Genera riassunto
-        </label>
-        <label>Motore
-          <select name="summary_provider" form="enqueue-form" id="summary-provider-select">
-            {% for p in summary_providers %}
-            <option value="{{ p.id }}"
-                    {% if p.id == default_summary_provider %}selected{% endif %}
-                    data-available="{{ 'true' if p.available else 'false' }}"
-                    data-reason="{{ p.reason }}">
-              {{ p.label }}{% if p.available %} ✓{% endif %}
-            </option>
-            {% endfor %}
-          </select>
-        </label>
-        <p class="hint" id="provider-hint"></p>
-        <label>Lunghezza
-          <select name="summary_length" form="enqueue-form">
-            <option value="auto">Automatica</option>
-            <option value="short">Breve</option>
-            <option value="normal">Normale</option>
-            <option value="detailed">Dettagliato</option>
-          </select>
-        </label>
-        <label>Lingua riassunto
-          <select name="summary_language" form="enqueue-form" id="summary-language-select">
-            {% for lang in language_options %}
-            <option value="{{ lang.code }}"{% if lang.code == default_summary_language %} selected{% endif %}>
-              {{ lang.label }}
-            </option>
-            {% endfor %}
-          </select>
-        </label>
-      </form>
-      <hr>
-      <h3>Ultimi lavori</h3>
-      <p class="hint"><a href="/jobs">Vedi tutti → Coda &amp; storico</a></p>
-      {% if jobs %}
-      <nav class="job-list">
-        {% for j in jobs %}
-        <a href="/jobs/{{ j.id }}" class="job-link{% if j.id == selected_id %} active{% endif %}" title="{{ j.id }}">
-          {{ j.label }}
-        </a>
+{% extends "base.html" %}
+
+{% block title %}Qwibo{% endblock %}
+{% block topbar_title %}{{ t('nav.home') }}{% endblock %}
+{% block topbar_subtitle %}{{ t('home.subtitle') }}{% endblock %}
+
+{% block sidebar_extra %}
+  <hr>
+  <form id="settings-form" class="settings-form">
+    <label>{{ t('home.f.device') }}
+      <select name="device" form="enqueue-form">
+        <option value="auto" selected>auto</option>
+        <option value="cpu">cpu</option>
+        <option value="cuda">cuda</option>
+      </select>
+    </label>
+    <label>{{ t('home.f.model') }}
+      <input type="text" name="model_name" form="enqueue-form" value="{{ default_model }}">
+    </label>
+    <label>{{ t('home.f.audio_lang') }}
+      <select name="asr_language" form="enqueue-form" id="asr-language-select">
+        {% for lang in language_options %}
+        <option value="{{ lang.code }}"{% if lang.code == default_asr_language %} selected{% endif %}>
+          {{ lang.label }}
+        </option>
         {% endfor %}
-      </nav>
-      {% else %}
-      <p class="hint">Nessun lavoro ancora.</p>
-      {% endif %}
-      <footer class="sidebar-footer">
-        <p class="hint">v{{ version }}</p>
-      </footer>
-    </aside>
+      </select>
+    </label>
+    <hr>
+    <h3>{{ t('home.summary_heading') }}</h3>
+    <a href="/settings?tab=riassunto" class="btn btn-secondary settings-cta">{{ t('home.engines_keys') }}</a>
+    <label class="checkbox">
+      <input type="checkbox" id="summary-enabled-cb"{% if summary_checked %} checked{% endif %}>
+      {{ t('home.gen_summary') }}
+    </label>
+    <label>{{ t('home.f.engine') }}
+      <select name="summary_provider" form="enqueue-form" id="summary-provider-select">
+        {% for p in summary_providers %}
+        <option value="{{ p.id }}"
+                {% if p.id == default_summary_provider %}selected{% endif %}
+                data-available="{{ 'true' if p.available else 'false' }}"
+                data-reason="{{ p.reason }}">
+          {{ p.label }}{% if p.available %} ✓{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <p class="hint" id="provider-hint"></p>
+    <label>{{ t('home.f.length') }}
+      <select name="summary_length" form="enqueue-form">
+        <option value="auto"{% if default_summary_length == 'auto' %} selected{% endif %}>{{ t('opt.length.auto') }}</option>
+        <option value="short"{% if default_summary_length == 'short' %} selected{% endif %}>{{ t('opt.length.short') }}</option>
+        <option value="normal"{% if default_summary_length == 'normal' %} selected{% endif %}>{{ t('opt.length.normal') }}</option>
+        <option value="detailed"{% if default_summary_length == 'detailed' %} selected{% endif %}>{{ t('opt.length.detailed') }}</option>
+      </select>
+    </label>
+    <label>{{ t('home.f.summary_lang') }}
+      <select name="summary_language" form="enqueue-form" id="summary-language-select">
+        {% for lang in language_options %}
+        <option value="{{ lang.code }}"{% if lang.code == default_summary_language %} selected{% endif %}>
+          {{ lang.label }}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+  </form>
+  <hr>
+  <h3>{{ t('home.recent') }}</h3>
+  <p class="hint"><a href="/jobs">{{ t('home.see_all') }}</a></p>
+  {% if jobs %}
+  <nav class="job-list">
+    {% for j in jobs %}
+    <a href="/jobs/{{ j.id }}" class="job-link{% if j.id == selected_id %} active{% endif %}" title="{{ j.id }}">
+      {{ j.label }}
+    </a>
+    {% endfor %}
+  </nav>
+  {% else %}
+  <p class="hint">{{ t('home.no_jobs') }}</p>
+  {% endif %}
+{% endblock %}
 
-    <main class="main">
-      <header class="hero">
-        <h1>Qwibo</h1>
-        <p>Trascrizione multilingua (IT · EN · FR · ES · DE) · Coda job · Riassunto LLM opt-in</p>
-      </header>
+{% block content %}
+  {% if flash %}
+  <div class="flash flash-{{ flash_type }}">{{ flash }}</div>
+  {% endif %}
 
-      {% if flash %}
-      <div class="flash flash-{{ flash_type }}">{{ flash }}</div>
-      {% endif %}
-
-      {% if configured_providers_count == 0 %}
-      <div class="flash flash-warning">
-        Nessun motore riassunto configurato.
-        <a href="/settings/summary">Apri impostazioni riassunto</a> per inserire la API key (es. DeepSeek) o preparare il modello locale.
-      </div>
-      {% endif %}
-
-      <section class="stats">
-        <div class="stat-card"><span class="label">Device</span><span class="value">{{ device }}</span></div>
-        <div class="stat-card"><span class="label">Lingue</span><span class="value">5</span></div>
-        <div class="stat-card"><span class="label">Lavori salvati</span><span class="value">{{ jobs_count }}</span></div>
-        <div class="stat-card"><span class="label">In coda</span><span class="value">{{ active_count }}</span></div>
-      </section>
-
-      <section class="panel">
-        <h2>Coda elaborazione</h2>
-        <div id="queue-panel"
-             hx-get="/partials/queue"
-             hx-trigger="load, every 2s"
-             hx-swap="innerHTML">
-          <p class="hint">Caricamento coda…</p>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>Carica file</h2>
-        <p class="hint">Le impostazioni della sidebar valgono per questo accodamento.</p>
-        <form id="enqueue-form" action="/enqueue" method="post" enctype="multipart/form-data" class="upload-form">
-          <input type="hidden" name="summary_enabled" id="summary-enabled-field" value="{% if summary_checked %}true{% endif %}"{% if not summary_checked %} disabled{% endif %}>
-          <input type="file" name="files" multiple accept=".mp4,.mkv,.avi,.mov,.webm,.wav,.mp3,.flac,.m4a,.ogg" required>
-          <label class="checkbox">
-            <input type="checkbox" name="allow_duplicate" value="true">
-            Accoda comunque se lo stesso file è già in coda
-          </label>
-          <button type="submit" class="btn btn-primary">Accoda trascrizione</button>
-        </form>
-      </section>
-
-      {% if selected_job %}
-        {% include "partials/job_detail.html" %}
-      {% endif %}
-    </main>
+  {% if configured_providers_count == 0 %}
+  <div class="flash flash-warning">
+    {{ t('home.warn_no_provider') }}
+    <a href="/settings?tab=riassunto">{{ t('home.open_summary_settings') }}</a> {{ t('home.warn_no_provider_tail') }}
   </div>
+  {% endif %}
+
+  <section class="stats">
+    <div class="stat-card"><span class="label">{{ t('home.stat.device') }}</span><span class="value">{{ device }}</span></div>
+    <div class="stat-card"><span class="label">{{ t('home.stat.languages') }}</span><span class="value">5</span></div>
+    <div class="stat-card"><span class="label">{{ t('home.stat.saved') }}</span><span class="value">{{ jobs_count }}</span></div>
+    <div class="stat-card"><span class="label">{{ t('home.stat.queued') }}</span><span class="value">{{ active_count }}</span></div>
+  </section>
+
+  <section class="panel">
+    <h2>{{ t('home.queue_title') }}</h2>
+    <div id="queue-panel"
+         hx-get="/partials/queue"
+         hx-trigger="load, every 2s"
+         hx-swap="innerHTML">
+      <p class="hint">{{ t('home.queue_loading') }}</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>{{ t('home.upload_title') }}</h2>
+    <p class="hint">{{ t('home.upload_hint') }}</p>
+    <form id="enqueue-form" action="/enqueue" method="post" enctype="multipart/form-data" class="upload-form">
+      <input type="hidden" name="summary_enabled" id="summary-enabled-field" value="{% if summary_checked %}true{% endif %}"{% if not summary_checked %} disabled{% endif %}>
+      <input type="file" name="files" multiple accept=".mp4,.mkv,.avi,.mov,.webm,.m4v,.flv,.wmv,.wav,.mp3,.flac,.m4a,.ogg,.opus,.aac,.wma" required>
+      <label class="checkbox">
+        <input type="checkbox" name="allow_duplicate" value="true">
+        {{ t('home.allow_dup') }}
+      </label>
+      <button type="submit" class="btn btn-primary">{{ t('home.enqueue') }}</button>
+    </form>
+  </section>
+
+  {% if selected_job %}
+    {% include "partials/job_detail.html" %}
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
   <script>
     const sel = document.getElementById('summary-provider-select');
     const hint = document.getElementById('provider-hint');
@@ -170,7 +153,7 @@
       if (!opt) return;
       if (opt.dataset.available === 'false') {
         const reason = opt.dataset.reason || 'da configurare';
-        hint.innerHTML = '⚠ ' + reason + ' — <a href="/settings/summary?highlight=' + opt.value + '">Configura ora</a>';
+        hint.innerHTML = '⚠ ' + reason + ' — <a href="/settings?tab=riassunto&highlight=' + opt.value + '">Configura ora</a>';
       } else if (summaryCb && summaryCb.checked) {
         hint.textContent = 'Riassunto attivo per il prossimo accodamento';
       } else {
@@ -187,5 +170,4 @@
     }
     if (sel) { sel.addEventListener('change', updateProviderHint); updateProviderHint(); }
   </script>
-</body>
-</html>
+{% endblock %}
