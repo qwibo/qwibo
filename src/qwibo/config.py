@@ -210,8 +210,11 @@ class SummaryLength(str, Enum):
 
 
 # LLM locale per riassunto (Qwen2.5 GGUF via llama.cpp)
-LOCAL_LLM_FOLDER = "qwen2.5-3b-instruct"
-LOCAL_LLM_GGUF_FILE = "qwen2.5-3b-instruct-q4_k_m.gguf"
+# 7B: italiano e traduzione (fase 2 cross-lingua) nettamente migliori del 3B.
+# ~4.68 GB, gira su CPU. Sorgente file singolo: bartowski/Qwen2.5-7B-Instruct-GGUF
+# (il repo ufficiale Qwen spezza il q4_k_m in 2 parti, incompatibile col download).
+LOCAL_LLM_FOLDER = "qwen2.5-7b-instruct"
+LOCAL_LLM_GGUF_FILE = "Qwen2.5-7B-Instruct-Q4_K_M.gguf"
 LOCAL_LLM_CTX = 8192
 MIN_RAM_GB = 16
 

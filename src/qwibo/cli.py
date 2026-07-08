@@ -181,6 +181,7 @@ def transcribe(
                         provider=summary_provider,
                         length=summary_length,
                         language=summary_lang,
+                        source_language=asr_lang,
                     )
                 path = export_summary_text(
                     summary.text, output_dir / f"{input_path.stem}_riassunto.txt"

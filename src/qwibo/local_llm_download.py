@@ -16,7 +16,9 @@ from qwibo.config import (
     system_ram_gb,
 )
 
-HF_REPO = "Qwen/Qwen2.5-3B-Instruct-GGUF"
+# bartowski fornisce il q4_k_m come FILE SINGOLO (il repo ufficiale Qwen lo
+# spezza in -00001-of-00002 / -00002-of-00002, che romperebbe hf_hub_download).
+HF_REPO = "bartowski/Qwen2.5-7B-Instruct-GGUF"
 HF_FILE = LOCAL_LLM_GGUF_FILE
 
 
@@ -70,7 +72,7 @@ def ensure_local_summary_llm_auto() -> None:
         return
 
     ram_label = f"~{ram:.1f} GB" if ram is not None else "sufficiente"
-    print(f"[qwibo] RAM {ram_label} — download LLM locale Qwen (~2 GB)...")
+    print(f"[qwibo] RAM {ram_label} — download LLM locale Qwen (~4.7 GB)...")
     if download_local_summary_llm() != 0:
         print(
             "[qwibo] Download LLM locale fallito. "

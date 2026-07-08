@@ -93,6 +93,7 @@ def run_pipeline(job_id: str) -> None:
                         length=SummaryLength(job.summary_length),
                         model=job.summary_model or None,
                         language=job.summary_language,
+                        source_language=job.asr_language,
                         on_progress=on_summary_progress,
                     )
                     export_summary_text(summary.text, job.summary_path())

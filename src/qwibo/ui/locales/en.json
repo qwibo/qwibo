@@ -140,7 +140,7 @@
   "rz.model_not_found": "GGUF model not found in",
   "rz.how_to": "How to enable it",
   "rz.step_deps": "Install dependencies:",
-  "rz.step_download": "Download the model (~2 GB):",
+  "rz.step_download": "Download the model (~4.7 GB):",
   "rz.step_verify": "Check that it exists",
   "rz.step_home": "Go back to home, enable «Generate summary» and choose",
   "rz.cpu_warn": "On CPU the local summary is slow (even 5–15 minutes on long audio). No API key required.",

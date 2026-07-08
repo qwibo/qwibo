@@ -86,11 +86,11 @@ function hasQwenModel() {
   const { models } = userDataPaths();
   const gguf = path.join(
     models,
-    "qwen2.5-3b-instruct",
-    "qwen2.5-3b-instruct-q4_k_m.gguf"
+    "qwen2.5-7b-instruct",
+    "Qwen2.5-7B-Instruct-Q4_K_M.gguf"
   );
   try {
-    return fs.existsSync(gguf) && fs.statSync(gguf).size > 1_500_000_000;
+    return fs.existsSync(gguf) && fs.statSync(gguf).size > 4_000_000_000;
   } catch {
     return false;
   }

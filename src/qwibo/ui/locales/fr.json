@@ -140,7 +140,7 @@
   "rz.model_not_found": "Modèle GGUF introuvable dans",
   "rz.how_to": "Comment l'activer",
   "rz.step_deps": "Installer les dépendances :",
-  "rz.step_download": "Télécharger le modèle (~2 Go) :",
+  "rz.step_download": "Télécharger le modèle (~4.7 Go) :",
   "rz.step_verify": "Vérifiez que le fichier existe",
   "rz.step_home": "Revenez à l'accueil, activez « Générer un résumé » et choisissez",
   "rz.cpu_warn": "Sur CPU, le résumé local est lent (jusqu'à 5–15 minutes sur des audios longs). Aucune clé API requise.",

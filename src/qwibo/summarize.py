@@ -8,10 +8,16 @@ from __future__ import annotations
 import logging
 
 from qwibo.config import SummaryLength
-from qwibo.languages import DEFAULT_LANGUAGE, normalize_language
+from qwibo.languages import CORE_LANGUAGE_CODES, DEFAULT_LANGUAGE, normalize_language
 from qwibo.summarize_providers.base import ProgressCallback, SummaryResult, count_sentences
 from qwibo.summarize_providers.local_qwen import unload_local_llm
-from qwibo.summarize_providers.prompt import merge_prompt, system_prompt, user_prompt
+from qwibo.summarize_providers.prompt import (
+    merge_prompt,
+    system_prompt,
+    translate_prompt,
+    translate_system_prompt,
+    user_prompt,
+)
 from qwibo.summarize_providers.registry import get_provider, provider_label
 
 logger = logging.getLogger(__name__)
@@ -219,6 +225,36 @@ def _map_reduce_summarize(
     )
 
 
+def _translate_summary(
+    result: SummaryResult,
+    *,
+    impl: object,
+    target_language: str,
+    used_model: str | None,
+    on_progress: ProgressCallback | None,
+) -> SummaryResult:
+    """Fase 2 cross-lingua: traduce il riassunto BREVE nella lingua target.
+
+    Riceve un riassunto già prodotto nella lingua sorgente e ne restituisce la
+    traduzione. Se la traduzione risulta vuota, mantiene il riassunto originale
+    (meglio un riassunto nella lingua sbagliata che nessun riassunto).
+    """
+    if on_progress:
+        on_progress("summarize", 99.0, "Traduzione del riassunto nella lingua richiesta...")
+    translated = impl.complete(  # type: ignore[attr-defined]
+        translate_system_prompt(target_language),
+        translate_prompt(result.text, target_language),
+        model=used_model,
+        on_progress=on_progress,
+    ).strip()
+    if not translated:
+        return result
+    result.text = translated
+    result.strategy = f"{result.strategy}+translate"
+    result.summary_sentences = count_sentences(translated)
+    return result
+
+
 def summarize(
     text: str,
     *,
@@ -226,11 +262,20 @@ def summarize(
     length: SummaryLength = SummaryLength.auto,
     model: str | None = None,
     language: str = DEFAULT_LANGUAGE,
+    source_language: str | None = None,
     on_progress: ProgressCallback | None = None,
 ) -> SummaryResult:
-    """Genera un riassunto LLM del testo trascritto."""
+    """Genera un riassunto LLM del testo trascritto.
+
+    Se ``source_language`` è una lingua supportata e DIVERSA da ``language``
+    (riassunto cross-lingua), usa una strategia a due fasi: riassume nella lingua
+    sorgente (compito su cui il modello è forte) e poi traduce il riassunto breve
+    nella lingua target. Questo evita che il modello traduca l'intero testo invece
+    di riassumere. Se sorgente e target coincidono (o la sorgente è ignota), il
+    comportamento è identico a prima: singola fase nella lingua target.
+    """
     text = text.strip()
-    lang = normalize_language(language)
+    target_lang = normalize_language(language)
     if not text:
         return SummaryResult(
             text="",
@@ -246,12 +291,19 @@ def summarize(
     if not available:
         raise RuntimeError(reason)
 
+    # Gating cross-lingua: attivo SOLO se la lingua sorgente è nota (una delle 5
+    # supportate) ed è diversa dalla target. "auto"/ignota => nessun cambiamento.
+    raw_src = (source_language or "").strip().lower()
+    src_lang = raw_src if raw_src in CORE_LANGUAGE_CODES else None
+    cross_language = src_lang is not None and src_lang != target_lang
+    work_lang = src_lang if cross_language else target_lang
+
     tokens = impl.estimate_tokens(text)
     chars = len(text)
     used_model = model or impl.default_model()
 
     if _should_map_reduce(impl, tokens, chars):
-        return _map_reduce_summarize(
+        result = _map_reduce_summarize(
             text,
             impl=impl,
             provider_id=provider_id,
@@ -259,31 +311,41 @@ def summarize(
             used_model=used_model,
             tokens=tokens,
             on_progress=on_progress,
-            language=lang,
+            language=work_lang,
+        )
+    else:
+        if on_progress:
+            on_progress(
+                "summarize",
+                92.0,
+                f"Riassunto ({provider_label(provider_id)})...",
+            )
+        summary_text = _complete(
+            impl,
+            user_prompt(text, length, work_lang),
+            model=used_model,
+            on_progress=on_progress,
+            language=work_lang,
+        )
+        result = SummaryResult(
+            text=summary_text.strip(),
+            provider=provider_id,
+            model=used_model or "",
+            source_chars=len(text),
+            input_tokens=tokens,
+            strategy="single",
+            summary_sentences=count_sentences(summary_text),
         )
 
-    if on_progress:
-        on_progress(
-            "summarize",
-            92.0,
-            f"Riassunto ({provider_label(provider_id)})...",
+    if cross_language and result.text.strip():
+        result = _translate_summary(
+            result,
+            impl=impl,
+            target_language=target_lang,
+            used_model=used_model,
+            on_progress=on_progress,
         )
-    summary_text = _complete(
-        impl,
-        user_prompt(text, length, lang),
-        model=used_model,
-        on_progress=on_progress,
-        language=lang,
-    )
-    result = SummaryResult(
-        text=summary_text.strip(),
-        provider=provider_id,
-        model=used_model or "",
-        source_chars=len(text),
-        input_tokens=tokens,
-        strategy="single",
-        summary_sentences=count_sentences(summary_text),
-    )
+
     return result
 
 

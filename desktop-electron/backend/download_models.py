@@ -31,8 +31,8 @@ ASR_URL = (
 )
 ASR_MIN_BYTES = 2_200_000_000
 ASR_ESTIMATE_BYTES = 2_600_000_000
-QWEN_MIN_BYTES = 1_500_000_000
-QWEN_ESTIMATE_BYTES = 2_104_932_768  # dimensione reale del GGUF q4_k_m
+QWEN_MIN_BYTES = 4_000_000_000  # 7B q4_k_m ~4.68 GB: sotto = download incompleto
+QWEN_ESTIMATE_BYTES = 4_683_074_240  # dimensione reale del GGUF 7B q4_k_m (bartowski)
 MIN_RAM_GB = 16
 
 
@@ -183,7 +183,7 @@ def download_qwen() -> None:
             {
                 "event": "phase",
                 "id": "qwen",
-                "label": "Download modello riassunto locale Qwen (~2 GB)",
+                "label": "Download modello riassunto locale Qwen (~4.7 GB)",
                 "total_mb": round(QWEN_ESTIMATE_BYTES / (1024 * 1024)),
             }
         )

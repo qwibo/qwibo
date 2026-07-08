@@ -140,7 +140,7 @@
   "rz.model_not_found": "GGUF-Modell nicht gefunden in",
   "rz.how_to": "So aktivierst du es",
   "rz.step_deps": "Abhängigkeiten installieren:",
-  "rz.step_download": "Modell herunterladen (~2 GB):",
+  "rz.step_download": "Modell herunterladen (~4.7 GB):",
   "rz.step_verify": "Prüfe, ob vorhanden ist",
   "rz.step_home": "Gehe zurück zum Start, aktiviere «Zusammenfassung erstellen» und wähle",
   "rz.cpu_warn": "Auf der CPU ist die lokale Zusammenfassung langsam (bei langen Audios auch 5–15 Minuten). Kein API-Schlüssel nötig.",

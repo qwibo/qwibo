@@ -198,6 +198,58 @@ _MERGE_INTRO = {
     ),
 }
 
+# --- Traduzione del riassunto (fase 2 cross-lingua) ---
+# Usato SOLO quando la lingua del trascritto differisce dalla lingua del riassunto:
+# si riassume prima nella lingua sorgente (compito su cui il modello è forte), poi si
+# traduce il riassunto BREVE nella lingua target. Evita che il modello traduca l'intero
+# testo invece di riassumere.
+
+_TRANSLATE_SYSTEM = {
+    "it": (
+        "Sei un traduttore professionale. Traduci fedelmente in italiano il testo fornito, "
+        "mantenendo esattamente lo stesso significato, la stessa struttura e la stessa lunghezza. "
+        "Scrivi in italiano naturale e scorrevole. "
+        "NON riassumere ulteriormente, NON aggiungere commenti, note, titoli o meta-frasi: "
+        "restituisci SOLO la traduzione."
+    ),
+    "en": (
+        "You are a professional translator. Faithfully translate the provided text into English, "
+        "keeping exactly the same meaning, structure, and length. "
+        "Write in natural, fluent English. "
+        "Do NOT summarize further, do NOT add comments, notes, headings, or meta-phrases: "
+        "return ONLY the translation."
+    ),
+    "fr": (
+        "Tu es un traducteur professionnel. Traduis fidèlement le texte fourni en français, "
+        "en conservant exactement le même sens, la même structure et la même longueur. "
+        "Écris dans un français naturel et fluide. "
+        "NE résume PAS davantage, n'ajoute AUCUN commentaire, note, titre ou méta-phrase : "
+        "renvoie UNIQUEMENT la traduction."
+    ),
+    "es": (
+        "Eres un traductor profesional. Traduce fielmente el texto proporcionado al español, "
+        "manteniendo exactamente el mismo significado, la misma estructura y la misma longitud. "
+        "Escribe en español natural y fluido. "
+        "NO resumas más, NO añadas comentarios, notas, títulos ni meta-frases: "
+        "devuelve SOLO la traducción."
+    ),
+    "de": (
+        "Du bist ein professioneller Übersetzer. Übersetze den bereitgestellten Text getreu ins Deutsche, "
+        "wobei genau dieselbe Bedeutung, Struktur und Länge erhalten bleibt. "
+        "Schreibe in natürlichem, flüssigem Deutsch. "
+        "Fasse NICHT weiter zusammen, füge KEINE Kommentare, Anmerkungen, Überschriften oder "
+        "Meta-Sätze hinzu: gib NUR die Übersetzung zurück."
+    ),
+}
+
+_TRANSLATE_INTRO = {
+    "it": "Traduci in italiano il seguente riassunto:\n\n",
+    "en": "Translate the following summary into English:\n\n",
+    "fr": "Traduis en français le résumé suivant :\n\n",
+    "es": "Traduce al español el siguiente resumen:\n\n",
+    "de": "Übersetze die folgende Zusammenfassung ins Deutsche:\n\n",
+}
+
 # Retrocompatibilità import (provider legacy)
 SYSTEM_PROMPT = _SYSTEM_PROMPTS["it"].format(CROSS_LANGUAGE=_CROSS_LANGUAGE_RULE["it"])
 
@@ -225,3 +277,14 @@ def merge_prompt(partial_summaries: str, length: SummaryLength, language: str = 
     lang = normalize_language(language)
     intro = _MERGE_INTRO.get(lang, _MERGE_INTRO["it"])
     return f"{length_instruction(length, lang)}\n\n{intro}{partial_summaries.strip()}"
+
+
+def translate_system_prompt(target_language: str = DEFAULT_LANGUAGE) -> str:
+    lang = normalize_language(target_language)
+    return _TRANSLATE_SYSTEM.get(lang, _TRANSLATE_SYSTEM["it"])
+
+
+def translate_prompt(text: str, target_language: str = DEFAULT_LANGUAGE) -> str:
+    lang = normalize_language(target_language)
+    intro = _TRANSLATE_INTRO.get(lang, _TRANSLATE_INTRO["it"])
+    return f"{intro}{text.strip()}"
