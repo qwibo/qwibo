@@ -18,8 +18,14 @@ const {
   waitForBackend,
 } = require("./backend-spawn");
 const { runModelSetupIfNeeded } = require("./model-setup");
-const { applyAppMenu } = require("./menu");
+const { applyAppMenu, MENU_STRINGS } = require("./menu");
+const { chooseLanguage } = require("./lang-wizard");
 const leads = require("./leads");
+
+function isFirstRun() {
+  const p = path.join(app.getPath("userData"), "data", "preferences.json");
+  return !fs.existsSync(p);
+}
 
 const CORE_LOCALES = ["it", "en", "fr", "es", "de"];
 
@@ -101,6 +107,10 @@ let tray = null;
 let backendPort = null;
 let leadWindow = null;
 let isShuttingDown = false;
+// true solo quando la finestra principale esiste. Evita che window-all-closed
+// chiuda l'app durante l'avvio (wizard lingua/setup chiusi → attesa backend =
+// zero finestre → altrimenti app.quit ammazza il backend appena partito).
+let mainWindowCreated = false;
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -159,6 +169,7 @@ async function createWindow() {
       sandbox: true,
     },
   });
+  mainWindowCreated = true;
 
   mainWindow.once("ready-to-show", () => mainWindow.show());
   mainWindow.loadURL(`http://127.0.0.1:${backendPort}/`);
@@ -178,9 +189,10 @@ async function createWindow() {
 }
 
 function buildTrayMenu() {
+  const t = MENU_STRINGS[readUiLocale()] || MENU_STRINGS.en;
   return Menu.buildFromTemplate([
     {
-      label: "Apri Qwibo",
+      label: t.trayOpen,
       click: () => {
         if (mainWindow) mainWindow.show();
         else createWindow();
@@ -188,12 +200,12 @@ function buildTrayMenu() {
     },
     { type: "separator" },
     {
-      label: "Apri cartella log",
+      label: t.logs,
       click: () => openLogFolder(),
     },
     { type: "separator" },
     {
-      label: "Esci",
+      label: t.quit,
       click: () => app.quit(),
     },
   ]);
@@ -206,6 +218,17 @@ app.whenReady().then(async () => {
   tray.on("double-click", () => {
     if (mainWindow) mainWindow.show();
   });
+
+  // Primo avvio: scelta lingua (pre-selezionata sul SO) prima del download modelli.
+  // Impone la lingua al backend via QWIBO_UI_LOCALE. Se saltato, resta il rilevamento automatico.
+  if (isFirstRun()) {
+    try {
+      const chosen = await chooseLanguage();
+      if (chosen) process.env.QWIBO_UI_LOCALE = chosen;
+    } catch {
+      /* wizard opzionale */
+    }
+  }
 
   const setupOk = await runModelSetupIfNeeded();
   if (!setupOk) {
@@ -241,5 +264,8 @@ app.on("before-quit", async (event) => {
 });
 
 app.on("window-all-closed", () => {
+  // Durante l'avvio (finestra principale non ancora creata) NON chiudere:
+  // wizard/setup si chiudono prima di createWindow e lascerebbero zero finestre.
+  if (!mainWindowCreated) return;
   if (process.platform !== "darwin") app.quit();
 });

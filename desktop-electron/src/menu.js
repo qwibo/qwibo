@@ -14,7 +14,7 @@ const STRINGS = {
     view: "Visualizza", reload: "Ricarica", theme: "Cambia tema (chiaro/scuro)",
     jobs: "Lavori", queue: "Coda e storico",
     help: "Aiuto", guide: "Guida utente", logs: "Apri cartella log", about: "Informazioni su Qwibo",
-    aboutBody: "Trascrizione multilingua in locale.",
+    aboutBody: "Trascrizione multilingua in locale.", trayOpen: "Apri Qwibo",
   },
   en: {
     file: "File", newJob: "New transcription", quit: "Quit",
@@ -22,7 +22,7 @@ const STRINGS = {
     view: "View", reload: "Reload", theme: "Toggle theme (light/dark)",
     jobs: "Jobs", queue: "Queue & history",
     help: "Help", guide: "User guide", logs: "Open log folder", about: "About Qwibo",
-    aboutBody: "Local multilingual transcription.",
+    aboutBody: "Local multilingual transcription.", trayOpen: "Open Qwibo",
   },
   fr: {
     file: "Fichier", newJob: "Nouvelle transcription", quit: "Quitter",
@@ -30,7 +30,7 @@ const STRINGS = {
     view: "Affichage", reload: "Recharger", theme: "Changer de thème (clair/sombre)",
     jobs: "Tâches", queue: "File et historique",
     help: "Aide", guide: "Guide utilisateur", logs: "Ouvrir le dossier des logs", about: "À propos de Qwibo",
-    aboutBody: "Transcription multilingue en local.",
+    aboutBody: "Transcription multilingue en local.", trayOpen: "Ouvrir Qwibo",
   },
   es: {
     file: "Archivo", newJob: "Nueva transcripción", quit: "Salir",
@@ -38,7 +38,7 @@ const STRINGS = {
     view: "Ver", reload: "Recargar", theme: "Cambiar tema (claro/oscuro)",
     jobs: "Trabajos", queue: "Cola e historial",
     help: "Ayuda", guide: "Guía de usuario", logs: "Abrir carpeta de registros", about: "Acerca de Qwibo",
-    aboutBody: "Transcripción multilingüe en local.",
+    aboutBody: "Transcripción multilingüe en local.", trayOpen: "Abrir Qwibo",
   },
   de: {
     file: "Datei", newJob: "Neue Transkription", quit: "Beenden",
@@ -46,7 +46,7 @@ const STRINGS = {
     view: "Ansicht", reload: "Neu laden", theme: "Design wechseln (hell/dunkel)",
     jobs: "Aufträge", queue: "Warteschlange & Verlauf",
     help: "Hilfe", guide: "Benutzerhandbuch", logs: "Log-Ordner öffnen", about: "Über Qwibo",
-    aboutBody: "Mehrsprachige Transkription lokal.",
+    aboutBody: "Mehrsprachige Transkription lokal.", trayOpen: "Qwibo öffnen",
   },
 };
 
