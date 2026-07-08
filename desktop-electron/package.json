@@ -20,6 +20,7 @@
   "build": {
     "appId": "net.antoniotrento.qwibo.desktop",
     "productName": "Qwibo",
+    "publish": null,
     "directories": {
       "output": "release",
       "buildResources": "assets"
@@ -27,7 +28,10 @@
     "files": [
       "src/**/*",
       "setup/**/*",
+      "lang/**/*",
+      "lead/**/*",
       "assets/**/*",
+      ".env",
       "package.json"
     ],
     "extraResources": [

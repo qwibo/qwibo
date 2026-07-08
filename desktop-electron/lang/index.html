@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+<title>Qwibo</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Segoe UI", system-ui, sans-serif;
+    background: #0a0a0e; color: #f3f3f7; padding: 24px; -webkit-font-smoothing: antialiased;
+  }
+  .brand { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .mark { width:30px; height:30px; }
+  .mark .reel { stroke:#38bdf8; stroke-width:5; fill:none; }
+  .mark .dot { fill:#38bdf8; }
+  .mark .text { stroke:#f3f3f7; stroke-width:5; stroke-linecap:round; }
+  .brand b { font-size:17px; }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  p { color: #9b9ba8; font-size: 13px; line-height: 1.5; margin: 0 0 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .lang {
+    padding: 13px 14px; border-radius: 12px; border: 1px solid #262630;
+    background: #16161e; color: #f3f3f7; font: inherit; font-weight: 600; font-size: 14px;
+    cursor: pointer; text-align: left;
+  }
+  .lang:hover { border-color: #3a3a46; }
+  .lang.active { border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56,189,248,.15); background: #101725; }
+  #continue {
+    width: 100%; margin-top: 18px; padding: 12px; border-radius: 999px; border: none;
+    background: linear-gradient(135deg,#38bdf8,#0ea5e9); color: #052a3b; font: inherit; font-weight: 700;
+    font-size: 14px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="brand">
+    <svg class="mark" viewBox="4 8 58 58" aria-hidden="true">
+      <circle class="reel" cx="22" cy="25" r="13"/><circle class="dot" cx="22" cy="25" r="3"/>
+      <path class="text" d="M22 38H57"/><path class="text" d="M22 48H57"/><path class="text" d="M22 58H44"/>
+    </svg>
+    <b>Qwibo</b>
+  </div>
+  <h1 id="title">Choose the app language</h1>
+  <p id="sub">You'll use this for the interface and as the default for transcription and summary. You can change it later.</p>
+  <div class="grid">
+    <button class="lang" data-code="it">Italiano</button>
+    <button class="lang" data-code="en">English</button>
+    <button class="lang" data-code="fr">Français</button>
+    <button class="lang" data-code="es">Español</button>
+    <button class="lang" data-code="de">Deutsch</button>
+  </div>
+  <button id="continue">Continue</button>
+
+<script>
+  var CORE = ["it","en","fr","es","de"];
+  var sel = (window.qwiboLang && window.qwiboLang.osLocale) || "en";
+  if (CORE.indexOf(sel) === -1) sel = "en";
+  var STR = {
+    it: { title:"Scegli la lingua dell'app", sub:"La userai per l'interfaccia e come predefinita per trascrizione e riassunto. Potrai cambiarla dopo.", cont:"Continua" },
+    en: { title:"Choose the app language", sub:"You'll use this for the interface and as the default for transcription and summary. You can change it later.", cont:"Continue" },
+    fr: { title:"Choisissez la langue de l'app", sub:"Elle servira pour l'interface et par défaut pour la transcription et le résumé. Vous pourrez la changer plus tard.", cont:"Continuer" },
+    es: { title:"Elige el idioma de la app", sub:"Se usará para la interfaz y como predeterminado para transcripción y resumen. Podrás cambiarlo después.", cont:"Continuar" },
+    de: { title:"Wähle die App-Sprache", sub:"Sie wird für die Oberfläche und als Standard für Transkription und Zusammenfassung verwendet. Du kannst sie später ändern.", cont:"Weiter" },
+  };
+  function render() {
+    var t = STR[sel] || STR.en;
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("sub").textContent = t.sub;
+    document.getElementById("continue").textContent = t.cont;
+    document.documentElement.lang = sel;
+    var items = document.querySelectorAll(".lang");
+    for (var i = 0; i < items.length; i++) {
+      items[i].classList.toggle("active", items[i].getAttribute("data-code") === sel);
+    }
+  }
+  var langs = document.querySelectorAll(".lang");
+  for (var i = 0; i < langs.length; i++) {
+    langs[i].addEventListener("click", function () { sel = this.getAttribute("data-code"); render(); });
+  }
+  document.getElementById("continue").addEventListener("click", function () {
+    if (window.qwiboLang) window.qwiboLang.choose(sel);
+  });
+  render();
+</script>
+</body>
+</html>

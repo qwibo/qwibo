@@ -1,0 +1,127 @@
+{# Corpo tab "Riassunto LLM" — usato dalla pagina /settings/summary e dall'hub /settings #}
+<section class="panel settings-section">
+  <h2>1. {{ t('rz.h_status') }}</h2>
+  <p class="hint">{{ t('rz.status_hint') }}</p>
+  <div class="provider-status-grid">
+    {% for p in summary_providers %}
+    <div class="provider-status-card {% if p.available %}status-ok{% else %}status-ko{% endif %}"
+         id="status-{{ p.id }}">
+      <strong>{{ p.label }}</strong>
+      <span class="status-badge">{% if p.available %}{{ t('rz.ready') }}{% else %}{{ t('rz.to_configure') }}{% endif %}</span>
+      {% if not p.available %}
+      <p class="hint">{{ p.reason }}</p>
+      {% else %}
+      <p class="hint">{{ t('rz.model_colon') }} <code>{{ p.default_model }}</code></p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="panel settings-section">
+  <h2>2. {{ t('rz.h_keys') }}</h2>
+  <p class="hint">
+    {{ t('rz.keys_hint_a') }} <code>{{ secrets_path }}</code> {{ t('rz.keys_hint_b') }}
+  </p>
+  <form action="/api/settings/summary-keys" method="post" class="cloud-keys-form">
+    {% for p in cloud_providers %}
+    <div class="provider-key-card {% if highlight_provider == p.id %}highlight{% endif %}"
+         id="provider-{{ p.id }}">
+      <div class="provider-key-header">
+        <h3>{{ p.label }}</h3>
+        <span class="status-badge {% if p.available %}status-ok{% else %}status-ko{% endif %}">
+          {% if p.has_key %}{{ t('rz.key_saved') }}{% else %}{{ t('rz.key_missing') }}{% endif %}
+        </span>
+      </div>
+      <p class="hint">{{ t('rz.model_default_colon') }} <code>{{ p.default_model }}</code></p>
+      <p class="hint">Env: <code>{{ p.env_var }}</code></p>
+      <label>{{ t('rz.api_key') }}
+        <input type="password" name="{{ p.id }}_key"
+               placeholder="{% if p.has_key %}{{ t('rz.key_ph_has') }}{% else %}{{ t('rz.key_ph_empty') }}{% endif %}"
+               autocomplete="off">
+      </label>
+      <div class="provider-key-actions">
+        <button type="button" class="btn btn-secondary btn-small test-provider-btn" data-provider="{{ p.id }}">
+          {{ t('rz.test_conn') }}
+        </button>
+        <span class="hint test-result" id="test-{{ p.id }}"></span>
+      </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">{{ t('rz.save_keys') }}</button>
+  </form>
+</section>
+
+<section class="panel settings-section" id="provider-local">
+  <h2>3. {{ t('rz.h_local') }}</h2>
+  <div class="local-status {% if local_provider.available %}status-ok{% else %}status-ko{% endif %}">
+    <p>
+      <strong>{{ t('rz.state_colon') }}</strong>
+      {% if local_provider.available %}{{ t('rz.ready') }}{% else %}{{ t('rz.unavailable') }}{% endif %}
+    </p>
+    {% if system_ram_gb is not none %}
+    <p>{{ t('rz.ram_system') }} <strong>~{{ system_ram_gb }} GB</strong> ({{ t('rz.ram_required') }} {{ min_ram_gb }} GB)</p>
+    {% endif %}
+    {% if local_gguf_path %}
+    <p>{{ t('rz.model_found') }} <code>{{ local_gguf_path }}</code></p>
+    {% else %}
+    <p class="warning">{{ t('rz.model_not_found') }} <code>{{ local_llm_dir }}</code></p>
+    {% endif %}
+    {% if local_provider and not local_provider.available %}
+    <p class="hint">{{ local_provider.reason }}</p>
+    {% endif %}
+  </div>
+
+  <h3>{{ t('rz.how_to') }}</h3>
+  <ol class="steps-list">
+    <li>{{ t('rz.step_deps') }} <code>pip install -e ".[summarize]"</code></li>
+    <li>{{ t('rz.step_download') }}
+      <pre class="cmd-block">python scripts/download_summary_llm.py</pre>
+    </li>
+    <li>{{ t('rz.step_verify') }} <code>models/{{ local_llm_folder }}/{{ local_llm_gguf_file }}</code></li>
+    <li>{{ t('rz.step_home') }} <strong>LLM locale (Qwen)</strong></li>
+  </ol>
+  <p class="hint warning">{{ t('rz.cpu_warn') }}</p>
+</section>
+
+<section class="panel settings-section">
+  <h2>4. {{ t('rz.h_usage') }}</h2>
+  <ol class="steps-list">
+    <li>{{ t('rz.use_1') }}</li>
+    <li>{{ t('rz.use_2') }}</li>
+    <li>{{ t('rz.use_3a') }} <strong>{{ t('home.gen_summary') }}</strong>{{ t('rz.use_3b') }}</li>
+    <li>{{ t('rz.use_4') }}</li>
+  </ol>
+</section>
+
+<script>
+  document.querySelectorAll('.test-provider-btn').forEach(btn => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', async () => {
+      const pid = btn.dataset.provider;
+      const card = btn.closest('.provider-key-card');
+      const input = card ? card.querySelector('input[type="password"]') : null;
+      const out = document.getElementById('test-' + pid);
+      if (out) out.textContent = 'Test…';
+      try {
+        const body = new FormData();
+        if (input && input.value.trim()) {
+          body.append('api_key', input.value.trim());
+        }
+        const r = await fetch('/api/settings/test-provider/' + pid, { method: 'POST', body });
+        const data = await r.json();
+        if (out) out.textContent = (data.ok ? '✓ ' : '✗ ') + data.message;
+      } catch (e) {
+        if (out) out.textContent = '✗ error';
+      }
+    });
+  });
+  (function () {
+    const highlight = '{{ highlight_provider }}';
+    if (highlight) {
+      const el = document.getElementById('provider-' + highlight) || document.getElementById('status-' + highlight);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  })();
+</script>

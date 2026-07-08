@@ -2,7 +2,7 @@
 
 > **Data**: 2026-07-04 · **Stato**: ✅ NOME SCELTO — **Qwibo**
 > **Obiettivo**: trovare un nome brand internazionale, distintivo e **libero**,
-> con cui rimpiazzare "Sbobinator".
+> con cui rimpiazzare "Qwibo".
 > **Timing:** l'alpha è **il momento più economico** per cambiare nome (poche
 > installazioni, SEO da costruire, nessun utente da confondere).
 
@@ -49,7 +49,7 @@
 | Documentazione tecnica lunga (MkDocs) | Dentro `qwibo/qwibo` in `docs/` **oppure** sezione `/docs` sul sito `qwibo.github.io` |
 | Release binarie (installer `.exe`) | **GitHub Releases** su `qwibo/qwibo` (o repo `qwibo/releases` dedicato solo binari — opzionale, non necessario all'alpha) |
 | Lead generation API (Raspberry Pi) | **Fuori da GitHub** (self-hosted sul Pi) — vedi `PLAN_LEAD_GENERATION.md` |
-| Repo vecchio `sbobinator` | Archiviato / privato dopo migrazione (redirect README → nuova org) |
+| Repo vecchio `qwibo` | Archiviato / privato dopo migrazione (redirect README → nuova org) |
 
 ### Nomi repo — raccomandazione finale
 
@@ -76,17 +76,17 @@ Il repo `docker` non duplica tutto il codice. Opzioni (scegliere una in Fase 1):
 
 ---
 
-## 8. Fase 2 — Rebrand applicazione (Sbobinator → Qwibo)
+## 8. Fase 2 — Rebrand applicazione (Qwibo → Qwibo)
 
-L'app **non può più chiamarsi Sbobinator** né mostrarlo da nessuna parte. Checklist completa.
+L'app **non può più chiamarsi Qwibo** né mostrarlo da nessuna parte. Checklist completa.
 
 ### 8.1 Identità visiva e packaging
 
 - [ ] `productName`: **Qwibo** (finestra, taskbar, installer)
-- [ ] `appId`: `net.antoniotrento.qwibo.desktop` (era `...sbobinator...`)
-- [ ] Installer: `Qwibo-Setup-0.1.0-alpha.1.exe` (era `Sbobinator-Setup-...`)
+- [ ] `appId`: `net.antoniotrento.qwibo.desktop` (era `...qwibo...`)
+- [ ] Installer: `Qwibo-Setup-0.1.0-alpha.1.exe` (era `Qwibo-Setup-...`)
 - [ ] Icona `.ico` / tray icon — nuovo logo Qwibo (o adattamento temporaneo del logo esistente)
-- [ ] Cartelle utente: `%APPDATA%/Qwibo/` (era `Sbobinator/` — prevedere migrazione o coesistenza alpha)
+- [ ] Cartelle utente: `%APPDATA%/Qwibo/` (era `Qwibo/` — prevedere migrazione o coesistenza alpha)
 
 ### 8.2 Testi visibili all'utente
 
@@ -95,13 +95,13 @@ L'app **non può più chiamarsi Sbobinator** né mostrarlo da nessuna parte. Che
 - [ ] UI web (FastAPI + HTMX) — header, titoli pagina, footer
 - [ ] Messaggi errore e log user-facing
 - [ ] EULA / licenza nel installer NSIS
-- [ ] Stringhe "Sbobinator" in `README`, `WINDOWS-RELEASE-FIXES.md`, docs
+- [ ] Stringhe "Qwibo" in `README`, `WINDOWS-RELEASE-FIXES.md`, docs
 
 ### 8.3 Codice e configurazione (interno)
 
 - [ ] `package.json`: `name`, `description`
-- [ ] Variabili env: `SBOBINATOR_*` → `QWIBO_*` (con alias temporaneo per compatibilità se serve)
-- [ ] Pacchetto Python `src/sbobinator/` → `src/qwibo/` (rename modulo + import)
+- [ ] Variabili env: `QWIBO_*` → `QWIBO_*` (con alias temporaneo per compatibilità se serve)
+- [ ] Pacchetto Python `src/qwibo/` → `src/qwibo/` (rename modulo + import)
 - [ ] `pyproject.toml`, entrypoint CLI (`sbobina` → `qwibo` o mantieni comando `qwibo` come unico)
 - [ ] Path log, SQLite DB, cartelle dati
 - [ ] `build_runtime.py`, `verify_runtime.py`, script build
@@ -112,17 +112,17 @@ L'app **non può più chiamarsi Sbobinator** né mostrarlo da nessuna parte. Che
 - [x] `appId`: `net.antoniotrento.qwibo.desktop`
 - [x] Installer: `Qwibo-Setup-0.1.0-alpha.1.exe`
 - [ ] Icona `.ico` / tray icon — nuovo logo Qwibo (o adattamento temporaneo del logo esistente)
-- [ ] Cartelle utente: `%APPDATA%/Qwibo/` (era `Sbobinator/` — prevedere migrazione o coesistenza alpha)
+- [ ] Cartelle utente: `%APPDATA%/Qwibo/` (era `Qwibo/` — prevedere migrazione o coesistenza alpha)
 - [x] Titolo finestra Electron, menu, dialoghi
 - [x] Wizard primo avvio / model setup (`setup/index.html`)
 - [x] UI web (FastAPI + HTMX) — header, titoli pagina, footer
 - [x] Messaggi errore e log user-facing (codice operativo)
 - [ ] EULA / licenza nel installer NSIS
 - [x] `package.json`: `name`, `description`
-- [x] Variabili env: `QWIBO_*` (con fallback legacy `SBOBINATOR_*`)
+- [x] Variabili env: `QWIBO_*` (con fallback legacy `QWIBO_*`)
 - [x] Pacchetto Python `src/qwibo/` (rename modulo + import)
 - [x] `pyproject.toml`, entrypoint CLI (`qwibo`)
-- [ ] Path log desktop: `%APPDATA%\qwibo-desktop\` (nuovo; legacy `sbobinator-desktop` da migrare)
+- [ ] Path log desktop: `%APPDATA%\qwibo-desktop\` (nuovo; legacy `qwibo-desktop` da migrare)
 - [x] `build_runtime.py`, `verify_runtime.py`, script build (testi)
 - [x] Docker: immagini `qwibo:cpu`/`qwibo:gpu`, servizi `qwibo-cpu`/`qwibo-gpu`, env `QWIBO_*`
 
@@ -172,7 +172,7 @@ Fase 0 — Setup org          Creare org qwibo + 3 repo vuoti
      ↓
 Fase 1 — Migrazione codice  Spostare codice nei repo giusti (qwibo, docker, sito)
      ↓
-Fase 2 — Rebrand app        Sbobinator → Qwibo ovunque (§8)
+Fase 2 — Rebrand app        Qwibo → Qwibo ovunque (§8)
      ↓
 Fase 3 — UX                 Miglioramento esperienza utente (§9)
      ↓
@@ -191,8 +191,8 @@ Fase 5 — Release alpha      Qwibo-Setup-*.exe su GitHub Releases
 ### Fase 1 — Migrazione codice
 - [ ] **`qwibo/qwibo`**: da repo attuale → `desktop-electron/`, `src/`, `scripts/`, `requirements/`, `assets/`, `docs/` tecnici
 - [ ] **`qwibo/docker`**: da `docker/` + README deploy; submodule o istruzioni build verso `qwibo`
-- [ ] **`qwibo/qwibo.github.io`**: da `sbobinator.github.io` → rebrand testi, logo, link download
-- [ ] Repo vecchio `sbobinator`: README con redirect "Progetto rinominato → Qwibo" + link org; poi **archiviare** o rendere privato
+- [ ] **`qwibo/qwibo.github.io`**: da `qwibo.github.io` → rebrand testi, logo, link download
+- [ ] Repo vecchio `qwibo`: README con redirect "Progetto rinominato → Qwibo" + link org; poi **archiviare** o rendere privato
 
 **DoD:** push sui 3 repo; clone fresco permette build desktop e `docker compose up`.
 
@@ -213,7 +213,7 @@ Fase 5 — Release alpha      Qwibo-Setup-*.exe su GitHub Releases
 - [ ] Landing Qwibo: cosa fa, screenshot, requisiti, bottone download
 - [ ] Link a GitHub Releases + SHA256 installer
 - [ ] Nota "alpha", SmartScreen non firmato
-- [ ] Privacy policy aggiornata (Qwibo, non Sbobinator)
+- [ ] Privacy policy aggiornata (Qwibo, non Qwibo)
 
 **DoD:** `https://qwibo.github.io` pronto per condividere sui canali marketing.
 
@@ -228,8 +228,8 @@ Fase 5 — Release alpha      Qwibo-Setup-*.exe su GitHub Releases
 
 ## 11. Cosa resta del vecchio nome
 
-- **"Sbobinator"** nel repo archiviato: solo come nota storica / redirect.
-- Opzionale per mercato IT: una riga sul sito tipo *"Conosciuto in Italia anche come evoluzione del progetto Sbobinator"* — **non** come brand ufficiale.
+- **"Qwibo"** nel repo archiviato: solo come nota storica / redirect.
+- Opzionale per mercato IT: una riga sul sito tipo *"Conosciuto in Italia anche come evoluzione del progetto Qwibo"* — **non** come brand ufficiale.
 - Comando CLI storico `sbobina`: valutare alias `qwibo` come comando principale; deprecare `sbobina` dopo beta.
 
 ---
@@ -275,7 +275,7 @@ probabile che sia libero su GitHub e privo di gemelli.
 
 ## Perché rebrandizzare (contesto)
 
-"Sbobinator" è **forte in Italia** (da *sbobinare*) ma **debole all'estero**:
+"Qwibo" è **forte in Italia** (da *sbobinare*) ma **debole all'estero**:
 opaco, difficile da pronunciare per anglofoni, "-ator" datato, SEO nulla fuori
 dall'Italia. Per la visione *"un WinRAR moderno"* con adozione globale serve un
 nome leggibile internazionalmente → **Qwibo**.

@@ -5,18 +5,29 @@
 
 from __future__ import annotations
 
+import io
+import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated
 from urllib.parse import quote
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    Response,
+)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -34,8 +45,16 @@ from qwibo.config import (
     models_dir,
     system_ram_gb,
 )
+from qwibo.i18n import normalize_locale, translate
+from qwibo.i18n import t as jinja_t
 from qwibo.languages import language_label, language_options, normalize_language
 from qwibo.license_info import acknowledge_license, license_ui_context
+from qwibo.preferences import (
+    ensure_preferences_initialized,
+    load_preferences,
+    preferences_path,
+    save_preferences,
+)
 from qwibo.jobs import (
     ACTIVE_STATUSES,
     STATUS_CANCELLED,
@@ -81,6 +100,16 @@ UI_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(UI_DIR / "templates"))
 templates.env.globals["provider_label"] = provider_label
 templates.env.globals["language_label"] = language_label
+templates.env.globals["t"] = jinja_t
+
+
+def _ui_locale() -> str:
+    return normalize_locale(str(load_preferences().get("ui_locale", "it")))
+
+
+def _flash(key: str) -> str:
+    """Messaggio flash tradotto nella lingua UI corrente."""
+    return translate(_ui_locale(), key)
 
 CLOUD_PROVIDER_FIELDS = {
     "openai": "OpenAI",
@@ -197,6 +226,7 @@ def _ui_shell_context(**extra: object) -> dict:
     """Shared template context: license URLs, acknowledgment, version."""
     return {
         "version": __version__,
+        "ui_locale": _ui_locale(),
         **license_ui_context(),
         **extra,
     }
@@ -229,6 +259,7 @@ def _job_detail_template_context(
     job_return_to = return_to if return_to and return_to.startswith("/") else f"/jobs/{job.id}"
     return {
         "version": __version__,
+        "ui_locale": _ui_locale(),
         "jobs_root": jobs_root().resolve(),
         "selected_job": job,
         "detail_standalone": detail_standalone,
@@ -253,6 +284,7 @@ def _job_detail_template_context(
 async def lifespan(_app: FastAPI):
     ensure_ssl()
     ensure_db()
+    ensure_preferences_initialized()
     reconcile_jobs_with_disk()
     start_background_worker()
     yield
@@ -283,6 +315,12 @@ async def index(
     selected_id = job or (jobs[0].id if jobs else "")
     selected = get_job(selected_id) if selected_id else None
     config = TranscribeConfig()
+    prefs = load_preferences()
+    if summary.strip() == "":
+        summary_checked = bool(prefs["default_summary_enabled"])
+    else:
+        summary_checked = _summary_checked_from_query(summary)
+    preferred_provider = provider.strip() or str(prefs["default_summary_provider"])
     ctx: dict = {
         "version": __version__,
         "python_exe": sys.executable,
@@ -297,7 +335,7 @@ async def index(
         "default_model": DEFAULT_MODEL,
         "flash": flash,
         "flash_type": flash_type,
-        "summary_checked": _summary_checked_from_query(summary),
+        "summary_checked": summary_checked,
         "status_queued": STATUS_QUEUED,
         "status_running": STATUS_RUNNING,
         "status_completed": STATUS_COMPLETED,
@@ -305,13 +343,15 @@ async def index(
         "status_cancelled": STATUS_CANCELLED,
         "active_statuses": ACTIVE_STATUSES,
         "nav_active": "home",
+        "ui_locale": normalize_locale(str(prefs["ui_locale"])),
         "transcript_text": "",
         "summary_text": "",
         "word_count": 0,
         "language_options": language_options(),
-        "default_asr_language": "it",
-        "default_summary_language": "it",
-        **_summary_context(preferred_provider=provider),
+        "default_asr_language": str(prefs["default_asr_language"]),
+        "default_summary_language": str(prefs["default_summary_language"]),
+        "default_summary_length": str(prefs["default_summary_length"]),
+        **_summary_context(preferred_provider=preferred_provider),
         **license_ui_context(),
     }
     if selected:
@@ -364,6 +404,7 @@ async def jobs_page(
             "status_cancelled": STATUS_CANCELLED,
             "active_statuses": ACTIVE_STATUSES,
             "nav_active": "jobs",
+            "ui_locale": _ui_locale(),
             **_summary_context(),
             **license_ui_context(),
         },
@@ -381,7 +422,7 @@ async def job_detail_page(
     job = get_job(job_id)
     if not job:
         return RedirectResponse(
-            url="/jobs?flash=Job+non+trovato&flash_type=warning",
+            url=f"/jobs?flash={quote(_flash('flash.job_not_found'))}&flash_type=warning",
             status_code=303,
         )
     return templates.TemplateResponse(
@@ -409,6 +450,7 @@ async def job_status_partial(request: Request, job_id: str) -> HTMLResponse:
             "status_queued": STATUS_QUEUED,
             "status_running": STATUS_RUNNING,
             "active_statuses": ACTIVE_STATUSES,
+            "ui_locale": _ui_locale(),
         },
     )
 
@@ -422,7 +464,25 @@ async def queue_partial(request: Request) -> HTMLResponse:
         {
             "status_queued": STATUS_QUEUED,
             "status_running": STATUS_RUNNING,
+            "ui_locale": _ui_locale(),
             **_queue_context(),
+        },
+    )
+
+
+@app.get("/partials/queue-bar", response_class=HTMLResponse)
+async def queue_bar_partial(request: Request) -> HTMLResponse:
+    """Barra compatta 'in esecuzione' (stile player) mostrata in fondo a ogni pagina."""
+    _ensure_worker()
+    ctx = _queue_context()
+    running = next((j for j in ctx["active"] if j.status == STATUS_RUNNING), None)
+    return templates.TemplateResponse(
+        request,
+        "partials/queue_bar.html",
+        {
+            "running": running,
+            "queued_count": ctx["queued_count"],
+            "ui_locale": _ui_locale(),
         },
     )
 
@@ -445,7 +505,8 @@ async def settings_summary(
             "flash_type": flash_type,
             "highlight_provider": highlight.strip().lower(),
             "jobs_root": jobs_root().resolve(),
-            "nav_active": "summary",
+            "nav_active": "settings",
+            "ui_locale": _ui_locale(),
             **_summary_context(),
             **license_ui_context(),
         },
@@ -464,8 +525,159 @@ async def settings_license(
         _ui_shell_context(
             flash=flash,
             flash_type=flash_type,
-            nav_active="license",
+            nav_active="settings",
         ),
+    )
+
+
+_SETTINGS_TABS = ("generale", "riassunto", "licenza", "feedback")
+
+
+def _os_name() -> str:
+    try:
+        return f"{platform.system()} {platform.release()}".strip()
+    except Exception:  # noqa: BLE001
+        return sys.platform
+
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings_hub(
+    request: Request,
+    tab: str = "generale",
+    highlight: str = "",
+    flash: str = "",
+    flash_type: str = "success",
+) -> HTMLResponse:
+    _ensure_worker()
+    active_tab = tab.strip().lower()
+    if active_tab not in _SETTINGS_TABS:
+        active_tab = "generale"
+    return templates.TemplateResponse(
+        request,
+        "settings.html",
+        {
+            "version": __version__,
+            "nav_active": "settings",
+            "active_tab": active_tab,
+            "highlight_provider": highlight.strip().lower(),
+            "flash": flash,
+            "flash_type": flash_type,
+            "ui_locale": _ui_locale(),
+            "prefs": load_preferences(),
+            "preferences_path": preferences_path(),
+            "language_options": language_options(),
+            "os_name": _os_name(),
+            "jobs_root": jobs_root().resolve(),
+            **_summary_context(),
+            **license_ui_context(),
+        },
+    )
+
+
+@app.post("/api/settings/preferences")
+async def save_preferences_route(
+    ui_theme: str = Form("dark"),
+    ui_locale: str = Form("it"),
+    default_asr_language: str = Form("it"),
+    default_summary_language: str = Form("it"),
+    default_summary_provider: str = Form(""),
+    default_summary_length: str = Form("auto"),
+    default_summary_enabled: str | None = Form(default=None),
+) -> RedirectResponse:
+    theme = ui_theme.strip().lower()
+    if theme not in ("dark", "light", "system"):
+        theme = "dark"
+    length = default_summary_length.strip().lower()
+    if length not in ("auto", "short", "normal", "detailed"):
+        length = "auto"
+    provider = default_summary_provider.strip().lower()
+    if provider and provider not in PROVIDER_IDS:
+        provider = ""
+    save_preferences(
+        {
+            "ui_theme": theme,
+            "ui_locale": normalize_locale(ui_locale),
+            "default_asr_language": normalize_language(default_asr_language),
+            "default_summary_language": normalize_language(default_summary_language),
+            "default_summary_provider": provider,
+            "default_summary_length": length,
+            "default_summary_enabled": default_summary_enabled == "true",
+        }
+    )
+    return RedirectResponse(
+        url=f"/settings?tab=generale&flash={quote(_flash('flash.prefs_saved'))}&flash_type=success",
+        status_code=303,
+    )
+
+
+@app.post("/api/feedback")
+async def submit_feedback_route(
+    category: str = Form("general"),
+    description: str = Form(""),
+    email: str = Form(""),
+) -> RedirectResponse:
+    text = description.strip()
+    if len(text) < 20:
+        return RedirectResponse(
+            url=(
+                f"/settings?tab=feedback"
+                f"&flash={quote(_flash('flash.feedback_short'))}&flash_type=warning"
+            ),
+            status_code=303,
+        )
+    cat = category.strip().lower()
+    if cat not in ("bug", "idea", "general"):
+        cat = "general"
+    now = datetime.now(timezone.utc)
+    record = {
+        "created_at": now.isoformat(),
+        "category": cat,
+        "description": text,
+        "email": email.strip(),
+        "app_version": __version__,
+        "os": _os_name(),
+    }
+    feedback_dir = data_dir() / "feedback"
+    feedback_dir.mkdir(parents=True, exist_ok=True)
+    fname = f"{now.strftime('%Y%m%d-%H%M%S')}-{cat}.json"
+    (feedback_dir / fname).write_text(
+        json.dumps(record, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return RedirectResponse(
+        url=(
+            f"/settings?tab=feedback"
+            f"&flash={quote(_flash('flash.feedback_saved'))}&flash_type=success"
+        ),
+        status_code=303,
+    )
+
+
+@app.get("/api/support-bundle")
+async def support_bundle_route() -> Response:
+    """ZIP di supporto: versione, OS, preferenze e log recenti.
+
+    **Non** include mai segreti (`.secrets/`) né i testi trascritti/riassunti.
+    """
+    now = datetime.now(timezone.utc)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr(
+            "version.txt",
+            f"Qwibo {__version__}\nOS: {_os_name()}\nGenerato: {now.isoformat()}\n",
+        )
+        pp = preferences_path()
+        if pp.exists():
+            z.writestr("preferences.json", pp.read_text(encoding="utf-8"))
+        for log in sorted(data_dir().glob("*.log")):
+            try:
+                z.writestr(f"logs/{log.name}", log.read_bytes()[-200_000:])
+            except OSError:
+                pass
+    filename = f"qwibo-support-{now.strftime('%Y%m%d-%H%M%S')}.zip"
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
@@ -489,7 +701,7 @@ async def cancel_job_route(
     cancel_job(job_id)
     if return_to.startswith("/"):
         return RedirectResponse(
-            url=f"{return_to}?flash={quote('Job annullato')}&flash_type=success",
+            url=f"{return_to}?flash={quote(_flash('flash.job_cancelled'))}&flash_type=success",
             status_code=303,
         )
     return await queue_partial(request)
@@ -511,10 +723,10 @@ async def delete_job_route(
     ok, err = delete_job(job_id)
     dest = return_to if return_to.startswith("/") else "/jobs"
     if ok:
-        flash = quote("Job eliminato")
+        flash = quote(_flash("flash.job_deleted"))
         flash_type = "success"
     else:
-        flash = quote(err or "Eliminazione fallita")
+        flash = quote(err or _flash("flash.delete_failed"))
         flash_type = "warning"
     sep = "&" if "?" in dest else "?"
     return RedirectResponse(url=f"{dest}{sep}flash={flash}&flash_type={flash_type}", status_code=303)
@@ -571,12 +783,12 @@ async def requeue_job_route(
     if requeue_job(job_id):
         sep = "&" if "?" in dest else "?"
         return RedirectResponse(
-            url=f"{dest}{sep}flash={quote('Job rimesso in coda')}&flash_type=success",
+            url=f"{dest}{sep}flash={quote(_flash('flash.requeued'))}&flash_type=success",
             status_code=303,
         )
     sep = "&" if "?" in dest else "?"
     return RedirectResponse(
-        url=f"{dest}{sep}flash={quote('Impossibile rimettere in coda')}&flash_type=warning",
+        url=f"{dest}{sep}flash={quote(_flash('flash.requeue_failed'))}&flash_type=warning",
         status_code=303,
     )
 
@@ -629,7 +841,7 @@ async def save_summary_keys_route(
     if updates:
         save_secrets(updates)
     return RedirectResponse(
-        url="/settings/summary?flash=API+key+salvate&flash_type=success",
+        url=f"/settings/summary?flash={quote(_flash('flash.keys_saved'))}&flash_type=success",
         status_code=303,
     )
 
@@ -681,7 +893,7 @@ async def enqueue_files(
 ) -> RedirectResponse:
     _ensure_worker()
     if not files:
-        return RedirectResponse(url="/?flash=Nessun+file+selezionato&flash_type=warning", status_code=303)
+        return RedirectResponse(url=f"/?flash={quote(_flash('flash.no_file_selected'))}&flash_type=warning", status_code=303)
 
     device_val = None if device == "auto" else device
     summary_on = summary_enabled == "true"
@@ -754,4 +966,4 @@ async def enqueue_files(
             ),
             status_code=303,
         )
-    return RedirectResponse(url="/?flash=Nessun+file+valido&flash_type=warning", status_code=303)
+    return RedirectResponse(url=f"/?flash={quote(_flash('flash.no_valid_file'))}&flash_type=warning", status_code=303)

@@ -1,4 +1,4 @@
-# Roadmap evolutive — Sbobinator
+# Roadmap evolutive — Qwibo
 
 Documento principale di pianificazione.  
 **Versione:** 0.1 · **Data:** 26 giugno 2026 · **Base:** v0.2.0 (UI Streamlit + jobs persistenti)
@@ -7,7 +7,7 @@ Documento principale di pianificazione.
 
 ## 1. Perché serve evolvere
 
-Sbobinator oggi risolve **un problema** (audio/video → testo in italiano in locale) ma non **un flusso di lavoro**.
+Qwibo oggi risolve **un problema** (audio/video → testo in italiano in locale) ma non **un flusso di lavoro**.
 
 ### Cosa funziona (non toccare senza motivo)
 
@@ -41,7 +41,7 @@ Sbobinator oggi risolve **un problema** (audio/video → testo in italiano in lo
 
 ## 2. Visione prodotto (12 mesi)
 
-> **Sbobinator** = motore locale di sbobinatura italiana, usabile da chiunque senza cloud, con coda affidabile, storico completo e automazione opzionale (cartella, API, Docker su mini server).
+> **Qwibo** = motore locale di sbobinatura italiana, usabile da chiunque senza cloud, con coda affidabile, storico completo e automazione opzionale (cartella, API, Docker su mini server).
 
 ### Principi guida
 
@@ -67,7 +67,7 @@ Otto aree interconnesse. Ogni feature va mappata su un pilastro.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    PILASTRI SBobinator                        │
+│                    PILASTRI Qwibo                        │
 ├──────────┬──────────┬──────────┬──────────┬──────────┬────────┤
 │  CODA    │  BATCH   │  STORICO │   UX     │ QUALITÀ  │ DEPLOY │
 │  JOB     │  AUTO    │  DATI    │ FEEDBACK │  TESTO   │ INFRA  │
@@ -177,7 +177,7 @@ Otto aree interconnesse. Ogni feature va mappata su un pilastro.
 - Compose profile: `cpu` (AMD mini PC), `gpu` (NVIDIA)
 - Healthcheck endpoint
 - Documentazione: "server domestico" con accesso LAN `http://mini-pc:8501`
-- Variabili env: `SBOBINATOR_JOBS_DIR`, `SBOBINATOR_WATCH_INBOX`
+- Variabili env: `QWIBO_JOBS_DIR`, `QWIBO_WATCH_INBOX`
 
 **Deliverable (v0.4):**
 - Aggiornamento Dockerfile + compose
@@ -201,7 +201,7 @@ Otto aree interconnesse. Ogni feature va mappata su un pilastro.
 | `POST /api/jobs/{id}/cancel` | Annulla se in coda/running |
 
 **Deliverable (v0.5):**
-- FastAPI in `src/sbobinator/api/`
+- FastAPI in `src/qwibo/api/`
 - `sbobina serve --api --ui` oppure processi separati
 
 ---
