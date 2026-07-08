@@ -2,11 +2,14 @@ const {
   app,
   BrowserWindow,
   dialog,
+  ipcMain,
   Menu,
   Tray,
   shell,
 } = require("electron");
 const path = require("path");
+const fs = require("fs");
+require("./load-env").loadEnv();
 const { findFreePort } = require("./find-port");
 const { install: installLogger, logFilePath, openLogFolder } = require("./logger");
 const {
@@ -15,6 +18,80 @@ const {
   waitForBackend,
 } = require("./backend-spawn");
 const { runModelSetupIfNeeded } = require("./model-setup");
+const { applyAppMenu } = require("./menu");
+const leads = require("./leads");
+
+const CORE_LOCALES = ["it", "en", "fr", "es", "de"];
+
+function readUiLocale() {
+  try {
+    const p = path.join(app.getPath("userData"), "data", "preferences.json");
+    const prefs = JSON.parse(fs.readFileSync(p, "utf-8"));
+    const code = String(prefs.ui_locale || "").slice(0, 2).toLowerCase();
+    if (CORE_LOCALES.includes(code)) return code;
+  } catch {
+    /* primo avvio: preferences.json non ancora creato */
+  }
+  const sys = String(app.getLocale() || "").slice(0, 2).toLowerCase();
+  return CORE_LOCALES.includes(sys) ? sys : "en";
+}
+
+function refreshAppMenu() {
+  applyAppMenu({
+    getWindow: () => mainWindow,
+    getPort: () => backendPort,
+    locale: readUiLocale(),
+    openLogFolder,
+    appVersion: APP_VERSION,
+  });
+}
+
+function closeLeadWindow() {
+  if (leadWindow && !leadWindow.isDestroyed()) leadWindow.close();
+  leadWindow = null;
+}
+
+/** Modal opt-in email al primo avvio — solo se il token è configurato. */
+function maybeShowLeadModal() {
+  if (!leads.leadsEnabled() || leads.hasPrompted() || !mainWindow) return;
+  leadWindow = new BrowserWindow({
+    width: 460,
+    height: 430,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    parent: mainWindow,
+    modal: true,
+    title: "Qwibo",
+    autoHideMenuBar: true,
+    icon: path.join(__dirname, "..", "assets", "icon.ico"),
+    webPreferences: {
+      preload: path.join(__dirname, "lead-preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      additionalArguments: [`--locale=${readUiLocale()}`],
+    },
+  });
+  leadWindow.loadFile(path.join(__dirname, "..", "lead", "index.html"));
+  leadWindow.on("closed", () => {
+    leadWindow = null;
+  });
+}
+
+ipcMain.handle("leads:submit", async (_event, payload) => {
+  const email = payload && payload.email;
+  const consent = payload && payload.consent;
+  const result = await leads.submitLead(email, consent, readUiLocale());
+  closeLeadWindow();
+  return result;
+});
+
+ipcMain.on("leads:skip", () => {
+  leads.markPrompted();
+  closeLeadWindow();
+});
 
 installLogger();
 
@@ -22,6 +99,7 @@ const APP_VERSION = "0.1.0";
 let mainWindow = null;
 let tray = null;
 let backendPort = null;
+let leadWindow = null;
 let isShuttingDown = false;
 
 const gotLock = app.requestSingleInstanceLock();
@@ -85,6 +163,10 @@ async function createWindow() {
   mainWindow.once("ready-to-show", () => mainWindow.show());
   mainWindow.loadURL(`http://127.0.0.1:${backendPort}/`);
 
+  // Il menu segue la lingua UI: dopo che l'utente la cambia in Impostazioni
+  // (redirect di salvataggio) ricostruiamo le label nella nuova lingua.
+  mainWindow.webContents.on("did-navigate", () => refreshAppMenu());
+
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: "deny" };
@@ -137,6 +219,12 @@ app.whenReady().then(async () => {
   }
 
   await createWindow();
+  refreshAppMenu();
+
+  // Lead-gen (solo se token configurato): ritenta la coda offline e mostra
+  // il modal opt-in al primo avvio. Mai bloccante per l'uso dell'app.
+  leads.flushPending().catch(() => {});
+  maybeShowLeadModal();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

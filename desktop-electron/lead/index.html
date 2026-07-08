@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+<title>Qwibo</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Segoe UI", system-ui, sans-serif;
+    background: #0a0a0e; color: #f3f3f7; padding: 22px;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  p { color: #9b9ba8; font-size: 13px; line-height: 1.5; margin: 0 0 12px; }
+  .field { margin: 14px 0 10px; }
+  input[type=email] {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid #262630; background: #101017; color: #f3f3f7; font: inherit;
+  }
+  input[type=email]:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,.15); }
+  .consent { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; color: #f3f3f7; margin: 10px 0; }
+  .consent input { margin-top: 2px; accent-color: #38bdf8; }
+  .row { display: flex; gap: 10px; margin-top: 18px; }
+  button {
+    flex: 1; padding: 11px 14px; border-radius: 999px; border: 1px solid #262630;
+    background: #1c1c26; color: #f3f3f7; font: inherit; font-weight: 600; cursor: pointer;
+  }
+  button.primary { background: linear-gradient(135deg,#38bdf8,#0ea5e9); border-color: transparent; color: #052a3b; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .err { color: #f87171; font-size: 12px; min-height: 14px; margin-top: 6px; }
+  .foot { color: #6b6b76; font-size: 11px; margin-top: 14px; }
+</style>
+</head>
+<body>
+  <h1 id="title">Stay updated</h1>
+  <p id="lead">Get an email only when an important update or security fix is released. No spam, unsubscribe with one click.</p>
+  <div class="field">
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+    <div class="err" id="err"></div>
+  </div>
+  <label class="consent">
+    <input type="checkbox" id="consent">
+    <span id="consentLabel">I agree to receive occasional update emails. I can unsubscribe anytime.</span>
+  </label>
+  <div class="row">
+    <button class="primary" id="ok">Keep me updated</button>
+    <button id="skip">Skip for now</button>
+  </div>
+  <div class="foot" id="foot">Your address is used only to notify you about Qwibo. Nothing else.</div>
+
+<script>
+  var L = (window.qwiboLeads && window.qwiboLeads.locale) || "en";
+  var STR = {
+    en: { title:"Stay updated", lead:"Get an email only when an important update or security fix is released. No spam, unsubscribe with one click.",
+      consent:"I agree to receive occasional update emails. I can unsubscribe anytime.", ok:"Keep me updated", skip:"Skip for now",
+      foot:"Your address is used only to notify you about Qwibo. Nothing else.", bad:"Enter a valid email or press Skip.", needConsent:"Tick the consent box to continue." },
+    it: { title:"Resta aggiornato", lead:"Ricevi una mail solo quando esce un aggiornamento importante o una correzione di sicurezza. Nessuno spam, cancellazione con un click.",
+      consent:"Acconsento a ricevere occasionali email di aggiornamento. Posso cancellarmi quando voglio.", ok:"Tienimi aggiornato", skip:"Salta per ora",
+      foot:"L'indirizzo serve solo per avvisarti su Qwibo. Nient'altro.", bad:"Inserisci un'email valida o premi Salta.", needConsent:"Spunta il consenso per continuare." },
+    fr: { title:"Restez informé", lead:"Recevez un e-mail uniquement pour une mise à jour importante ou un correctif de sécurité. Pas de spam, désinscription en un clic.",
+      consent:"J'accepte de recevoir occasionnellement des e-mails de mise à jour. Je peux me désinscrire à tout moment.", ok:"Tenez-moi informé", skip:"Ignorer pour l'instant",
+      foot:"Votre adresse sert uniquement à vous avertir au sujet de Qwibo. Rien d'autre.", bad:"Saisissez un e-mail valide ou cliquez sur Ignorer.", needConsent:"Cochez le consentement pour continuer." },
+    es: { title:"Mantente al día", lead:"Recibe un correo solo cuando salga una actualización importante o una corrección de seguridad. Sin spam, cancela con un clic.",
+      consent:"Acepto recibir correos ocasionales de actualización. Puedo darme de baja cuando quiera.", ok:"Mantenme al día", skip:"Omitir por ahora",
+      foot:"Tu dirección se usa solo para avisarte sobre Qwibo. Nada más.", bad:"Introduce un correo válido o pulsa Omitir.", needConsent:"Marca el consentimiento para continuar." },
+    de: { title:"Bleib informiert", lead:"Erhalte eine E-Mail nur bei einem wichtigen Update oder Sicherheitsfix. Kein Spam, Abmeldung mit einem Klick.",
+      consent:"Ich stimme gelegentlichen Update-E-Mails zu. Ich kann mich jederzeit abmelden.", ok:"Halte mich auf dem Laufenden", skip:"Vorerst überspringen",
+      foot:"Deine Adresse wird nur genutzt, um dich über Qwibo zu informieren. Sonst nichts.", bad:"Gib eine gültige E-Mail ein oder klicke auf Überspringen.", needConsent:"Setze das Häkchen, um fortzufahren." },
+  };
+  var t = STR[L] || STR.en;
+  function set(id, v){ document.getElementById(id).textContent = v; }
+  set("title", t.title); set("lead", t.lead); set("consentLabel", t.consent);
+  set("ok", t.ok); set("skip", t.skip); set("foot", t.foot);
+  document.documentElement.lang = L;
+
+  var email = document.getElementById("email");
+  var consent = document.getElementById("consent");
+  var err = document.getElementById("err");
+  var ok = document.getElementById("ok");
+  function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  document.getElementById("skip").addEventListener("click", function(){
+    if (window.qwiboLeads) window.qwiboLeads.skip();
+  });
+  ok.addEventListener("click", function(){
+    err.textContent = "";
+    if (!validEmail(email.value.trim())) { err.textContent = t.bad; return; }
+    if (!consent.checked) { err.textContent = t.needConsent; return; }
+    ok.disabled = true;
+    if (!window.qwiboLeads) return;
+    window.qwiboLeads.submit(email.value.trim(), true).then(function(){
+      /* main chiude la finestra */
+    }).catch(function(){ ok.disabled = false; err.textContent = t.bad; });
+  });
+</script>
+</body>
+</html>

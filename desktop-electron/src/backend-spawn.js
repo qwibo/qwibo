@@ -141,6 +141,15 @@ function startBackend(port) {
     QWIBO_PORT: String(port),
     QWIBO_UI_HOST: "127.0.0.1",
     QWIBO_DATA: paths.data,
+    // Lingua UI del SO per il seeding al primo avvio (preferences.py la usa solo
+    // se preferences.json non esiste ancora; poi vince la scelta dell'utente).
+    QWIBO_UI_LOCALE: (() => {
+      try {
+        return app.getLocale() || "";
+      } catch {
+        return "";
+      }
+    })(),
     NEMO_CACHE_DIR: paths.models,
     NUMBA_CACHE_DIR: numbaCache,
     MPLCONFIGDIR: mplCache,
