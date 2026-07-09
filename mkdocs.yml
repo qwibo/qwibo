@@ -75,6 +75,7 @@ plugins:
             FAQ: FAQ
             Licenses: Licenze
             Commercial license: Licenza commerciale
+            "← Back to Qwibo": "← Torna a Qwibo"
   - search: {}
 
 markdown_extensions:
@@ -90,7 +91,7 @@ markdown_extensions:
       permalink: true
 
 nav:
-  - "← qwibo.io": https://qwibo.github.io/
+  - "← Back to Qwibo": https://qwibo.github.io/
   - Home: index.md
   - Getting started:
       - getting-started/overview.md
