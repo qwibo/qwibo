@@ -30,7 +30,18 @@ models/*
 # Env
 .env
 .env.local
+
+# Secrets — repo PUBBLICO: mai committare token o chiavi API.
+# Il token GitHub (scripts/github_issue.py) va in .secrets/github_token (root):
+# ignora tutto il contenuto tranne il segnaposto .gitkeep.
 data/.secrets/
+/.secrets/*
+!/.secrets/.gitkeep
+**/summary_keys.json
+**/summary_keys*.json
+
+# Node
+node_modules/
 
 # OS
 .DS_Store
