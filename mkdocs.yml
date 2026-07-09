@@ -90,6 +90,7 @@ markdown_extensions:
       permalink: true
 
 nav:
+  - "← qwibo.io": https://qwibo.github.io/
   - Home: index.md
   - Getting started:
       - getting-started/overview.md
